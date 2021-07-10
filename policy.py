@@ -1,6 +1,7 @@
 from datetime import datetime
 from enum import Enum
-from typing import List, Dict
+from random import random
+from typing import List, Dict, Set
 
 
 class Product:
@@ -50,6 +51,7 @@ class Discount(Product):
         :return: The Euro annual margin
         """
         return base_product.get_margin() + self._margin
+
 
 class Address:
     def __init__(self, postcode: str, house_number: int, ext: str):
@@ -146,9 +148,22 @@ class Transaction:
 
 class Policy:
     def __init__(self):
-        self.applicable_actions = dict()
+        self.applicable_actions: Dict[str, List[Action]] = dict()
 
     def add_arm(self, action: Action, segment_ids: List[str]):
         for segment_id in segment_ids:
-            self.applicable_actions[segment_id] = action
+            if segment_id not in self.applicable_actions:
+                self.applicable_actions[segment_id] = list()
+            self.applicable_actions[segment_id].append(action)
+
+    def get_next_best_action(self, customer: Customer, segment_ids: List[str]) -> ServedActionPropensity:
+        actions: Set[Action] = set()
+        for segment_id in segment_ids:
+            if segment_id in self.applicable_actions:
+                actions = actions.union(self.applicable_actions[segment_id])
+        nba = random.sample(actions)
+        propensities: Dict[str, float] = dict()
+        for action in actions:
+            propensities[action.name] = 1/len(actions)
+        return ServedActionPropensity(chosen_action=nba, action_propensities=propensities)
 
