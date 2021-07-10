@@ -10,10 +10,9 @@ from customerGenerator import generate_customers
 from policy import ServedActionPropensity, Policy, Customer, Address, Product, Channel, Action, Offer
 
 
-
 def policy_sim(policy_class, customers: List[Customer], actions: List[Action]):
     print(policy_class.__name__)
-    policy = policy_class()
+    policy: Policy = policy_class()
 
 
 
