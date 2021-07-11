@@ -1,6 +1,7 @@
+import random
 from datetime import datetime
+from datetime import date
 from enum import Enum
-from random import random
 from typing import List, Dict, Set
 
 
@@ -186,7 +187,7 @@ class Policy:
         for segment_id in segment_ids:
             if segment_id in self.applicable_actions:
                 actions = actions.union(self.applicable_actions[segment_id])
-        nba = random.sample(actions)
+        nba = random.sample(actions, k=1)[0]
         propensities: Dict[str, float] = dict()
         for action in actions:
             propensities[action.name] = 1/len(actions)
