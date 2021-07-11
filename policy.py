@@ -168,5 +168,5 @@ class Policy:
         propensities: Dict[str, float] = dict()
         for action in actions:
             propensities[action.name] = 1/len(actions)
-        return ServedActionPropensity(chosen_action=nba, action_propensities=propensities)
+        return ServedActionPropensity(customer=customer, chosen_action=nba, action_propensities=propensities)
 
