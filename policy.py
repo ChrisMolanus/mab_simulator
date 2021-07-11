@@ -102,7 +102,7 @@ class Content:
 
 class Action:
     def __init__(self, name: str, channel: Channel, offer: Offer, content: Content,
-                 start_date: datetime, end_date: datetime):
+                 start_date: datetime, end_date: datetime, cool_off_days: int):
         """
         Action as defined by Marketing
         :param name: Name of Action as it is know in Marketing
@@ -111,6 +111,7 @@ class Action:
         :param content: The marketing content use during serving of this Action
         :param start_date: The day that this action is allowed to be assigned to a customer
         :param end_date: The last day this action can be assigned to a customer
+        :param cool_off_days: The number of days to allow teh action to take effect
         """
         self.name = name
         self.channel = channel
@@ -118,6 +119,7 @@ class Action:
         self.content = content
         self.start_date = start_date
         self.end_date = end_date
+        self.cool_off_days = cool_off_days
 
 
 class ServedActionPropensity:
