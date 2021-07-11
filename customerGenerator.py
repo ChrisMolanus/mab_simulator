@@ -29,7 +29,8 @@ def generate_customers(nr_of_customers) -> List[Customer]:
     customers: List[Customer] = list()
     for i in range(nr_of_customers):
         fake_address = Address(postcode=f"123{i}AB", house_number=i, ext=None)
-        customers.append(Customer(name=f"{names[i]['lastname']}, {names[i]['firstname']}",
+        customers.append(Customer(id=i,
+                                  name=f"{names[i]['lastname']}, {names[i]['firstname']}",
                                   dob=datetime.today(),
                                   billing_address=fake_address,
                                   portfolio=portfolios[i], ))
