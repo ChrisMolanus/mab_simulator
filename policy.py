@@ -61,7 +61,8 @@ class Address:
 
 
 class Customer:
-    def __init__(self, name: str, dob: datetime, billing_address: Address, portfolio: List[Product]):
+    def __init__(self, id: int, name: str, dob: datetime, billing_address: Address, portfolio: List[Product]):
+        self.id = id
         self.name = name
         self.dob = dob
         self.billing_address = billing_address
