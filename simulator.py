@@ -54,7 +54,8 @@ def policy_sim(policy_class, customers: List[Customer], actions: List[Action], d
                 reward = rewardCalculator.calculate(servedActionPropensity.customer, customerAction)
                 policy.add_customer_action(customer_action=customerAction, reward=reward)
 
-                del actionTimeout[today + timedelta(days=cool_off_days)][customer.id]
+                deadline = today + timedelta(days=cool_off_days)
+                del actionTimeout[deadline][customer.id]
                 del servedActionPropensities[customer.id]
 
 
