@@ -7,7 +7,7 @@ import requests
 from bs4 import BeautifulSoup
 import csv
 
-from policy import Product, Customer, Address
+from policy import Product, Customer, Address, Action, CustomerAction
 
 
 def generate_portfolios(nr_of_customers) -> List[List[Product]]:
@@ -76,6 +76,11 @@ def generate_names(nr_of_customers) -> List[Dict[str, str]]:
     for i in range(len(lastnames)):
         names.append({"firstname": firstnames[i], "lastname": lastnames[i]})
     return names
+
+
+def what_would_a_customer_do(customer: Customer, action: Action) -> CustomerAction:
+    return None
+
 
 if __name__ == "__main__":
     nr_of_customers = 10000
