@@ -136,14 +136,16 @@ class ServedActionPropensity:
 
 
 # class ServedAction:
-#     def __init__(self, customer: Customer, action: Action):
+#     def __init__(self, customer: Customer, action: Action, ts: datetime):
 #         """
 #         The Event performed in the channel
 #         :param customer: The customer it wa performed on
 #         :param action: The action that was performed
+#         :param ts: Time the action was performed
 #         """
 #         self.customer = customer
 #         self.action = action
+#         self.ts = ts
 
 
 class CustomerAction:
