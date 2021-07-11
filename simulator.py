@@ -71,6 +71,6 @@ if __name__ == "__main__":
     customers = generate_customers(10000)
     actions = get_actions()
     for policy_class in policies:
-        p = Process(target=policy_sim, args=(policy_class, customers, actions))
+        p = Process(target=policy_sim, args=(policy_class, customers, actions, 365))
         p.start()
         processes.append(p)
