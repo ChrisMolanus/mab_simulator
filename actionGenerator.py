@@ -44,4 +44,12 @@ def get_actions() -> List[Action]:
             for template in templates:
                 offer = Offer(name=f"Offer {product.name}", products=[product])
                 content = Content(name=f"Content for Offer {product.name} in channel {channel}", channel=channel, template=template)
-                actions.append(Action(name=f"Sell {product.name} in {channel}", channel=channel, offer=offer, content=content, start_date=datetime.today(), end_date=datetime.today()+timedelta(weeks=6)))
+                actions.append(Action(name=f"Sell {product.name} in {channel}",
+                                      channel=channel,
+                                      offer=offer,
+                                      content=content,
+                                      start_date=datetime.today().date(),
+                                      end_date=(datetime.today()+timedelta(weeks=6)).date(),
+                                      cool_off_days=21
+                               ))
+    return actions
