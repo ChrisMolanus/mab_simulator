@@ -143,10 +143,22 @@ class ServedActionPropensity:
 #         self.customer = customer
 #         self.action = action
 
-class Transaction:
-    def __init__(self, added: List[Product], removed: List[Product]):
+
+class CustomerAction:
+    def __init__(self, customer: Customer, channel: Channel, ts: datetime, **kwargs):
+        self.customer = customer
+        self.channel = channel
+        self.ts = ts
+        self.kwargs = kwargs
+
+
+class Transaction(CustomerAction):
+    def __init__(self, customer: Customer, channel: Channel, added: List[Product], removed: List[Product], ts: datetime):
+        self.customer = customer
+        self.channel = channel
         self.added = added
         self.removed = removed
+        self.ts = ts
 
 
 class Policy:
