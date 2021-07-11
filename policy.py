@@ -159,6 +159,12 @@ class Policy:
                 self.applicable_actions[segment_id] = list()
             self.applicable_actions[segment_id].append(action)
 
+    def add_customer_action(self, customer_action: CustomerAction, reward: float):
+        pass
+
+    def add_company_action(self, customer: Customer, action: Action, ts: datetime, cost: float):
+        pass
+
     def get_next_best_action(self, customer: Customer, segment_ids: List[str]) -> ServedActionPropensity:
         actions: Set[Action] = set()
         for segment_id in segment_ids:
