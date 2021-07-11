@@ -74,3 +74,6 @@ if __name__ == "__main__":
         p = Process(target=policy_sim, args=(policy_class, customers, actions, 365))
         p.start()
         processes.append(p)
+
+    for p in processes:
+        p.join()
