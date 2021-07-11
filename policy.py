@@ -123,12 +123,14 @@ class Action:
 
 
 class ServedActionPropensity:
-    def __init__(self, chosen_action: Action, action_propensities: Dict[str, float]):
+    def __init__(self, customer: Customer, chosen_action: Action, action_propensities: Dict[str, float]):
         """
         The NBA of the Policy and the propensity of the other actions for this customer
+        :param customer: The customer
         :param chosen_action: The Next Best Action
         :param action_propensities: The propensity of the other actions
         """
+        self.customer = customer
         self.chosen_action = chosen_action
         self.action_propensities = action_propensities
 
