@@ -20,7 +20,8 @@ def policy_sim(policy_class, customers: List[Customer], actions: List[Action], d
     actionTimeout: Dict[datetime, dict[int, ServedActionPropensity]] = dict()
 
     start_date = datetime.today()
-    for today in (start_date + timedelta(n) for n in range(day_count)):
+    for today_datetime in (start_date + timedelta(n) for n in range(day_count)):
+        today = today_datetime.date()
         actionTimeout[today] = dict()
 
         for action in actions:
@@ -42,7 +43,10 @@ def policy_sim(policy_class, customers: List[Customer], actions: List[Action], d
         # Actually perform the action
         for servedActionPropensity in todaysServedActionPropensities:
             cool_off_days = servedActionPropensity.chosen_action.cool_off_days
-            actionTimeout[today + timedelta(days=cool_off_days)][customer.id] = servedActionPropensity
+            deadline = today + timedelta(days=cool_off_days)
+            if deadline not in actionTimeout:
+                actionTimeout[deadline] = dict()
+            actionTimeout[deadline][customer.id] = servedActionPropensity
             customerAction = what_would_a_customer_do(servedActionPropensity.customer, servedActionPropensity.chosen_action)
 
             # See if we have inidiat reward

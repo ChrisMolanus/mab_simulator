@@ -103,7 +103,7 @@ class Content:
 
 class Action:
     def __init__(self, name: str, channel: Channel, offer: Offer, content: Content,
-                 start_date: datetime, end_date: datetime, cool_off_days: int):
+                 start_date: date, end_date: date, cool_off_days: int):
         """
         Action as defined by Marketing
         :param name: Name of Action as it is know in Marketing
