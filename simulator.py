@@ -14,6 +14,8 @@ from customerGenerator import generate_customers, what_would_a_customer_do
 from policy import ServedActionPropensity, Policy, Customer, Address, Product, Channel, Action, Offer, Transaction
 from rewardCalculator import RewardCalculator
 
+call_center_daily_quota = 200
+
 
 def policy_sim(policy_class, customers: List[Customer], actions: List[Action], day_count: int, output: Queue) -> DataFrame:
     print(policy_class.__name__)
@@ -37,33 +39,39 @@ def policy_sim(policy_class, customers: List[Customer], actions: List[Action], d
 
         todaysServedActionPropensities = list()
         for customer in customers:
+            if len(todaysServedActionPropensities) >= call_center_daily_quota:
+                break
             if customer.id not in servedActionPropensities:
                 servedActionPropensity = policy.get_next_best_action(customer=customer, segment_ids=[1])
                 todaysServedActionPropensities.append(servedActionPropensity)
                 servedActionPropensities[customer.id] = servedActionPropensity
-
 
         if today in actionTimeout:
             for servedActionPropensity in actionTimeout[today]:
                 policy.add_customer_action(customer_action=None, reward=0.0)
 
         # Actually perform the action
+        call_counter = 0
         for servedActionPropensity in todaysServedActionPropensities:
+            if call_counter >= call_center_daily_quota:
+                break
+            customer = servedActionPropensity.customer
             cool_off_days = servedActionPropensity.chosen_action.cool_off_days
             deadline = today + timedelta(days=cool_off_days)
             if deadline not in actionTimeout:
                 actionTimeout[deadline] = dict()
             actionTimeout[deadline][customer.id] = servedActionPropensity
-            customerAction = what_would_a_customer_do(servedActionPropensity.customer, servedActionPropensity.chosen_action, today_datetime)
+            customer_action = what_would_a_customer_do(servedActionPropensity.customer, servedActionPropensity.chosen_action, today_datetime)
+            call_counter += 1
 
             # See if we have inidiat reward
-            if isinstance(customerAction, Transaction):
-                reward = rewardCalculator.calculate(servedActionPropensity.customer, customerAction)
-                policy.add_customer_action(customer_action=customerAction, reward=reward)
+            if isinstance(customer_action, Transaction):
+                reward = rewardCalculator.calculate(servedActionPropensity.customer, customer_action)
+                policy.add_customer_action(customer_action=customer_action, reward=reward)
 
                 deadline = today + timedelta(days=cool_off_days)
                 del actionTimeout[deadline][customer.id]
-                del servedActionPropensities[customer.id]
+                #del servedActionPropensities[customer.id]
 
                 cumulative_reward += reward
 
@@ -75,7 +83,7 @@ if __name__ == "__main__":
     policies = [fierceCrayfish.FierceCrayfish, dashingRingtail.DashingRingtail]
 
     processes = list()
-    customers = generate_customers(10000)
+    customers = generate_customers(100000)
     actions = get_actions()
     output_queue = Queue()
     for policy_class in policies:
