@@ -195,14 +195,26 @@ class Policy:
     def add_company_action(self, customer: Customer, action: Action, ts: datetime, cost: float):
         pass
 
+    def set_datetime(self, now_ts: datetime):
+        for segment_id , actions in self.applicable_actions.items():
+            actions_to_remove = list()
+            for action in actions:
+                if action.end_date <= now_ts.date():
+                    actions_to_remove.append(action)
+            for action in actions_to_remove:
+                actions.remove(action)
+
     def get_next_best_action(self, customer: Customer, segment_ids: List[str]) -> ServedActionPropensity:
         actions: Set[Action] = set()
         for segment_id in segment_ids:
             if segment_id in self.applicable_actions:
                 actions = actions.union(self.applicable_actions[segment_id])
-        nba = random.sample(actions, k=1)[0]
-        propensities: Dict[str, float] = dict()
-        for action in actions:
-            propensities[action.name] = 1/len(actions)
-        return ServedActionPropensity(customer=customer, chosen_action=nba, action_propensities=propensities)
+        if len(actions) > 1:
+            nba = random.sample(actions, k=1)[0]
+            propensities: Dict[str, float] = dict()
+            for action in actions:
+                propensities[action.name] = 1/len(actions)
+            return ServedActionPropensity(customer=customer, chosen_action=nba, action_propensities=propensities)
+        else:
+            return None
 
