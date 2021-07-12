@@ -97,8 +97,9 @@ if __name__ == "__main__":
         logs = output_logs["logs"]
         policy_name = output_logs["policy"]
         for log in logs:
-            for ts, cum_reward in log:
-                #ts = log["ts"]
+            for log_line in log:
+                ts = log_line["ts"]
+                cum_reward = log_line["cumulative_reward"]
                 if ts not in all_logs[policy_name]:
                     all_logs[policy_name][ts] = list()
                 all_logs[policy_name][ts].append(cum_reward)
