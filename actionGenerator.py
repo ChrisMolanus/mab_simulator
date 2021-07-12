@@ -2,7 +2,7 @@ import csv
 from datetime import datetime, timedelta
 from typing import List
 
-from policy import Product, Action, Channel, Offer, Content, Template
+from policy import Product, Action, Channel, Offer, Content, Template, ProductType
 
 
 class EmailTemplate1(Template):
@@ -37,7 +37,7 @@ def get_actions() -> List[Action]:
         reader = csv.DictReader(infile, delimiter=';')
         for row in reader:
             products.append(Product(id=row["id"], name=row["name"], list_price=float(row["yearly_list_price"]),
-                                    margin=float(row["yearly_margin"])))
+                                    margin=float(row["yearly_margin"]), product_type=ProductType.FIXED_INTERNET, download_speed=float(row["download_speed"]), upload_speed=float(row["upload_speed"])))
     actions: List[Action] = list()
     for channel in Channel:
         for product in products:

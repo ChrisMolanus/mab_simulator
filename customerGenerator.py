@@ -7,7 +7,7 @@ import requests
 from bs4 import BeautifulSoup
 import csv
 
-from policy import Product, Customer, Address, Action, CustomerAction
+from policy import ProductType, Product, Customer, Address, Action, CustomerAction, Transaction
 
 
 def generate_portfolios(nr_of_customers) -> List[List[Product]]:
@@ -17,10 +17,10 @@ def generate_portfolios(nr_of_customers) -> List[List[Product]]:
         reader = csv.DictReader(infile, delimiter=';')
         for row in reader:
             products.append(Product(id=row["id"], name=row["name"], list_price=float(row["yearly_list_price"]),
-                                    margin=float(row["yearly_margin"])))
+                                    margin=float(row["yearly_margin"]), product_type=ProductType.FIXED_INTERNET, download_speed=float(row["download_speed"]), upload_speed=float(row["upload_speed"])))
             product_market_size.append(float(row["segment_size"]))
 
-    return list(np.random.choice(products, nr_of_customers, p=product_market_size))
+    return [[p] for p in np.random.choice(products, nr_of_customers, p=product_market_size)]
 
 
 def generate_customers(nr_of_customers) -> List[Customer]:
@@ -78,7 +78,18 @@ def generate_names(nr_of_customers) -> List[Dict[str, str]]:
     return names
 
 
-def what_would_a_customer_do(customer: Customer, action: Action) -> CustomerAction:
+def what_would_a_customer_do(customer: Customer, action: Action, ts: datetime) -> CustomerAction:
+    for product in customer.portfolio:
+        if product.product_type == ProductType.FIXED_INTERNET:
+            current_internet = product
+            break
+    for product in action.offer.products:
+        if product.product_type == ProductType.FIXED_INTERNET:
+            offer_internet = product
+            break
+
+    if current_internet.kwargs["download_speed"] < offer_internet.kwargs["download_speed"]:
+        return Transaction(customer=customer, channel=action.channel, added=action.offer.products, removed=[current_internet], ts=ts)
     return None
 
 

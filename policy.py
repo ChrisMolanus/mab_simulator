@@ -5,21 +5,31 @@ from enum import Enum
 from typing import List, Dict, Set
 
 
+class ProductType(Enum):
+    FIXED_INTERNET = "Fixed Internet Service"
+    PSTN = "Plain old Telephone"
+    MOBILE = "Mobile service"
+    DISCOUNT = "Discount"
+
+
 class Product:
-    def __init__(self, id: int, name: str, list_price: float, margin: float):
+    def __init__(self, id: int, name: str, list_price: float, margin: float, product_type: ProductType, **kwargs):
         """
         Something that was sold/given to a customer, E.g. Hardware, Service contract, discount
         :param id: The product ID as it is knows in the accounting system
         :param name: The Name as it would appear on a customer bill
         :param list_price: The price as it would appear on a customer bill
         :param margin: The margin that is directly made on the sale of this product
+        :param product_type: The type of product
         """
         self.id = id
         self.name = name
         self.list_price = list_price
         self._margin = margin
+        self.product_type = product_type
+        self.kwargs = kwargs
 
-    def get_margin(self, base_product) -> float:
+    def get_margin(self, base_product=None) -> float:
         """
         Calculate to annual margin of this product
         :param base_product: The product of wich this product is a modifierof, None if this is a L0 product
@@ -32,18 +42,21 @@ class Product:
 
 
 class Discount(Product):
-    def __init__(self, id: int, name: str, list_price: float, margin: float):
+    def __init__(self, id: int, name: str, list_price: float, margin: float, product_type: ProductType= ProductType.DISCOUNT, **kwargs):
         """
         A customer discount represented as a product that can appear on a bill
         :param id: The id
         :param name: The name it would appear on the bill
         :param list_price: The negative annual value in euros
         :param margin: The negative annual value in euros since this is a loss
+        :param product_type: The typeof products, default DISCOUNT
         """
         self.id = id
         self.name = name
         self.list_price = list_price
         self._margin = margin
+        self.product_type = product_type
+        self.kwargs = kwargs
 
     def get_margin(self, base_product: Product) -> float:
         """
