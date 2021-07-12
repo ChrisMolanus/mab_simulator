@@ -6,7 +6,7 @@ from policy import Customer, Transaction, Product
 
 class RewardCalculator:
     def __init__(self):
-        self.hlv_calculator = HlvCalculator
+        self.hlv_calculator = HlvCalculator()
 
     def calculate(self, customer: Customer, transaction: Transaction) -> float:
         hlv_before = self.hlv_calculator.get_hlv(customer)
