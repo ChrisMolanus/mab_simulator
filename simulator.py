@@ -68,7 +68,6 @@ def policy_sim(policy_class, customers: List[Customer], actions: List[Action], d
                 cumulative_reward += reward
 
         log.append({"ts": today, "cumulative_reward": cumulative_reward})
-        print(today)
     output.put({"policy": policy_class.__name__, "logs": [log]})
 
 
