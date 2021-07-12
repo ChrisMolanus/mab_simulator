@@ -17,79 +17,96 @@ from rewardCalculator import RewardCalculator
 call_center_daily_quota = 200
 
 
-def policy_sim(policy_class, customers: List[Customer], actions: List[Action], day_count: int, output: Queue) -> DataFrame:
-    print(policy_class.__name__)
-    policy: Policy = policy_class()
-    rewardCalculator = RewardCalculator()
+def policy_sim(policy_class, all_customers: List[Customer], actions: List[Action], day_count: int, output: Queue, run_id:int, sequential_runs: int) -> DataFrame:
+    print(policy_class.__name__ + str(run_id))
+    reward_calculator = RewardCalculator()
 
-    log: List[Dict[str, Any]] = list()
+    logs: List[List[Dict[str, Any]]] = list()
 
-    servedActionPropensities: Dict[int, ServedActionPropensity] = dict()
-    actionTimeout: Dict[datetime, dict[int, ServedActionPropensity]] = dict()
+    for s_run in range(sequential_runs):
+        log: List[Dict[str, Any]] = list()
+        customers = all_customers.copy()
+        policy: Policy = policy_class()
+        served_action_propensities: Dict[int, ServedActionPropensity] = dict()
+        action_timeout: Dict[datetime, dict[int, ServedActionPropensity]] = dict()
 
-    cumulative_reward = 0.0
-    start_date = datetime.today()
-    for today_datetime in (start_date + timedelta(n) for n in range(day_count)):
-        today = today_datetime.date()
-        actionTimeout[today] = dict()
+        cumulative_reward = 0.0
+        start_date = datetime.today()
+        for today_datetime in (start_date + timedelta(n) for n in range(day_count)):
+            today = today_datetime.date()
+            action_timeout[today] = dict()
 
-        for action in actions:
-            if today == action.start_date:
-                policy.add_arm(action, [1])
+            policy.set_datetime(today_datetime)
 
-        todaysServedActionPropensities = list()
-        for customer in customers:
-            if len(todaysServedActionPropensities) >= call_center_daily_quota:
-                break
-            if customer.id not in servedActionPropensities:
-                servedActionPropensity = policy.get_next_best_action(customer=customer, segment_ids=[1])
-                todaysServedActionPropensities.append(servedActionPropensity)
-                servedActionPropensities[customer.id] = servedActionPropensity
+            # Add new actions that are available from today
+            for action in actions:
+                if today == action.start_date:
+                    policy.add_arm(action, [1])
 
-        if today in actionTimeout:
-            for servedActionPropensity in actionTimeout[today]:
-                policy.add_customer_action(customer_action=None, reward=0.0)
+            # Select a set of people that we can call today
+            todays_served_action_propensities = list()
+            while len(todays_served_action_propensities) < call_center_daily_quota and len(customers) > 0:
+                customer = customers.pop()
+                if customer.id not in served_action_propensities:
+                    served_action_propensity = policy.get_next_best_action(customer=customer, segment_ids=[1])
+                    if served_action_propensity is not None:
+                        todays_served_action_propensities.append(served_action_propensity)
+                        served_action_propensities[customer.id] = served_action_propensity
 
-        # Actually perform the action
-        call_counter = 0
-        for servedActionPropensity in todaysServedActionPropensities:
-            if call_counter >= call_center_daily_quota:
-                break
-            customer = servedActionPropensity.customer
-            cool_off_days = servedActionPropensity.chosen_action.cool_off_days
-            deadline = today + timedelta(days=cool_off_days)
-            if deadline not in actionTimeout:
-                actionTimeout[deadline] = dict()
-            actionTimeout[deadline][customer.id] = servedActionPropensity
-            customer_action = what_would_a_customer_do(servedActionPropensity.customer, servedActionPropensity.chosen_action, today_datetime)
-            call_counter += 1
+            # Look for old actions that have timed out
+            if today in action_timeout:
+                for served_action_propensity in action_timeout[today]:
+                    # Gave up on this customer since they did not convert
+                    policy.add_customer_action(served_action_propensity=served_action_propensity,
+                                               customer_action=None,
+                                               reward=0.0)
+            del action_timeout[today]
 
-            # See if we have inidiat reward
-            if isinstance(customer_action, Transaction):
-                reward = rewardCalculator.calculate(servedActionPropensity.customer, customer_action)
-                policy.add_customer_action(customer_action=customer_action, reward=reward)
-
+            # Actually perform the action
+            call_counter = 0
+            for served_action_propensity in todays_served_action_propensities:
+                if call_counter >= call_center_daily_quota:
+                    break
+                customer = served_action_propensity.customer
+                cool_off_days = served_action_propensity.chosen_action.cool_off_days
                 deadline = today + timedelta(days=cool_off_days)
-                del actionTimeout[deadline][customer.id]
-                #del servedActionPropensities[customer.id]
+                if deadline not in action_timeout:
+                    action_timeout[deadline] = dict()
+                action_timeout[deadline][customer.id] = served_action_propensity
+                customer_action = what_would_a_customer_do(served_action_propensity.customer, served_action_propensity.chosen_action, today_datetime)
+                call_counter += 1
 
-                cumulative_reward += reward
+                # See if we have inidiat reward
+                if isinstance(customer_action, Transaction):
+                    reward = reward_calculator.calculate(served_action_propensity.customer, customer_action)
+                    policy.add_customer_action(served_action_propensity=served_action_propensity,
+                                               customer_action=customer_action,
+                                               reward=reward)
 
-        log.append({"ts": today, "cumulative_reward": cumulative_reward})
-    output.put({"policy": policy_class.__name__, "logs": [log]})
+                    deadline = today + timedelta(days=cool_off_days)
+                    del action_timeout[deadline][customer.id]
+
+                    cumulative_reward += reward
+
+            log.append({"ts": today, "cumulative_reward": cumulative_reward})
+        logs.append(log)
+    output.put({"policy": policy_class.__name__, "logs": logs})
 
 
 if __name__ == "__main__":
     policies = [fierceCrayfish.FierceCrayfish, dashingRingtail.DashingRingtail]
+    runs_per_policies = 2
+    sequential_runs = 5
 
     processes = list()
     customers = generate_customers(100000)
     actions = get_actions()
     output_queue = Queue()
     for policy_class in policies:
-        p = Process(target=policy_sim, args=(policy_class, customers, actions, 365, output_queue))
-        p.start()
-        processes.append(p)
+        for r in range(runs_per_policies):
+            p = Process(target=policy_sim, args=(policy_class, customers, actions, 365, output_queue, r, sequential_runs))
+            p.start()
+            processes.append(p)
 
     all_logs: Dict[str, Dict[datetime, List[float]]] = dict()
     plot_dict: Dict[str, List[Dict[datetime, dict]]] = dict()
@@ -120,11 +137,12 @@ if __name__ == "__main__":
 
     fig, ax = plt.subplots()
     for policy_name, policy in plot_dfs.items():
-        ax.plot(policy["ts"], policy["mean"]/1000)
+        ax.plot(policy["ts"], policy["mean"]/1000, label=policy_name)
 
     ax.set(xlabel='time (days)', ylabel='Cumulative HLV (1000 Euros)',
            title='Policy performance')
     ax.grid()
+    plt.legend()
 
     fig.savefig("test.png")
     plt.show()
