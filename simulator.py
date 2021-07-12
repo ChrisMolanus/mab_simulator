@@ -53,7 +53,7 @@ def policy_sim(policy_class, customers: List[Customer], actions: List[Action], d
             if deadline not in actionTimeout:
                 actionTimeout[deadline] = dict()
             actionTimeout[deadline][customer.id] = servedActionPropensity
-            customerAction = what_would_a_customer_do(servedActionPropensity.customer, servedActionPropensity.chosen_action)
+            customerAction = what_would_a_customer_do(servedActionPropensity.customer, servedActionPropensity.chosen_action, today_datetime)
 
             # See if we have inidiat reward
             if isinstance(customerAction, Transaction):
