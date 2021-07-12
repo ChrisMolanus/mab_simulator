@@ -49,7 +49,7 @@ def get_actions() -> List[Action]:
                                       offer=offer,
                                       content=content,
                                       start_date=datetime.today().date(),
-                                      end_date=(datetime.today()+timedelta(weeks=6)).date(),
+                                      end_date=(datetime.today()+timedelta(weeks=53)).date(),
                                       cool_off_days=21
                                ))
     return actions
