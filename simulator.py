@@ -86,8 +86,9 @@ if __name__ == "__main__":
     all_logs: Dict[str, Dict[datetime, List[float]]] = dict()
     plot_dict: Dict[str, List[Dict[datetime, dict]]] = dict()
     for policy_class in policies:
-        all_logs[policy_class] = dict()
-        plot_dict[policy_class] = dict()
+        policy_name = policy_class.__name__
+        all_logs[policy_name] = dict()
+        plot_dict[policy_name] = list()
 
     for p in processes:
         #p.join()
