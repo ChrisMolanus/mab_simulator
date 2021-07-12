@@ -189,7 +189,7 @@ class Policy:
                 self.applicable_actions[segment_id] = list()
             self.applicable_actions[segment_id].append(action)
 
-    def add_customer_action(self, customer_action: CustomerAction, reward: float):
+    def add_customer_action(self, served_action_propensity: ServedActionPropensity, customer_action: CustomerAction, reward: float):
         pass
 
     def add_company_action(self, customer: Customer, action: Action, ts: datetime, cost: float):
