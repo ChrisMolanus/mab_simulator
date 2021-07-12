@@ -39,6 +39,6 @@ class RewardCalculator:
 class HlvCalculator:
     def get_hlv(self, customer: Customer) -> float:
         margin = 0.0
-        for product in customer:
-            margin += product.margin * 5  # years
+        for product in customer.portfolio:
+            margin += product.get_margin() * 5  # years
         return margin
