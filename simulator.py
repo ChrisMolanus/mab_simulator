@@ -120,10 +120,10 @@ if __name__ == "__main__":
 
     fig, ax = plt.subplots()
     for policy_name, policy in plot_dfs.items():
-        ax.plot(policy["ts"], policy["mean"])
+        ax.plot(policy["ts"], policy["mean"]/1000)
 
-    ax.set(xlabel='time (s)', ylabel='voltage (mV)',
-           title='About as simple as it gets, folks')
+    ax.set(xlabel='time (days)', ylabel='Cumulative HLV (1000 Euros)',
+           title='Policy performance')
     ax.grid()
 
     fig.savefig("test.png")
