@@ -3,8 +3,6 @@ from typing import Dict, List, Tuple
 
 import numpy as np
 import xml.etree.ElementTree as ET
-import requests
-from bs4 import BeautifulSoup
 import csv
 
 from policy import ProductType, Product, Customer, Address, Action, CustomerAction, Transaction
