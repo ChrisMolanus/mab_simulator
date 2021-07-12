@@ -88,7 +88,7 @@ def what_would_a_customer_do(customer: Customer, action: Action, ts: datetime) -
 
     # Only buy if offer is better that what we have and its only 10% more expensive and random chance is in your favour
     if current_internet.kwargs["download_speed"] < offer_internet.kwargs["download_speed"]\
-            and offer_internet.get_margin()/current_internet.get_margin() < 1.1\
+            and offer_internet.list_price/current_internet.list_price < 1.1\
             and np.random.choice([True, False], 1, True, [0.03, 0.97]):
         return Transaction(customer=customer,
                            channel=action.channel,
