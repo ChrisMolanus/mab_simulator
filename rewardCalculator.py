@@ -29,9 +29,14 @@ class RewardCalculator:
             portfolio_dict[product.name].append(product)
 
         # flatten portfolio to list
-        customer.portfolio = list(chain(*portfolio_dict.values()))
+        fake_customer = Customer(id=customer.id,
+                                 name=customer.name,
+                                 dob=customer.dob,
+                                 billing_address=customer.billing_address,
+                                 portfolio=list(chain(*portfolio_dict.values()))
+        )
 
-        hlv_after = self.hlv_calculator.get_hlv(customer)
+        hlv_after = self.hlv_calculator.get_hlv(fake_customer)
 
         return hlv_after - hlv_before
 
