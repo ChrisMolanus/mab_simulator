@@ -123,9 +123,7 @@ if __name__ == "__main__":
         plot_dict[policy_name] = list()
 
     for p in processes:
-        #p.join()
         output_logs = output_queue.get(block=True)
-        #for policy_name, run_logs in logs.items():
         logs = output_logs["logs"]
         policy_name = output_logs["policy"]
         for log in logs:
@@ -135,6 +133,10 @@ if __name__ == "__main__":
                 if ts not in all_logs[policy_name]:
                     all_logs[policy_name][ts] = list()
                 all_logs[policy_name][ts].append(cum_reward)
+
+    for p in processes:
+        if p.is_alive():
+            p.join()
 
     plot_dfs: Dict[str, DataFrame] = dict()
     for policy, log in all_logs.items():
