@@ -199,6 +199,9 @@ class Policy:
     def add_company_action(self, customer: Customer, action: Action, ts: datetime, cost: float):
         pass
 
+    def add_channel_quota(self, channel: Channel, daily_quota: int):
+        pass
+
     def set_datetime(self, now_ts: datetime):
         for segment_id , actions in self.applicable_actions.items():
             actions_to_remove = list()
