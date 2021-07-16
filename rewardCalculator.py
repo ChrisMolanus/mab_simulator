@@ -34,7 +34,7 @@ class RewardCalculator:
                                  dob=customer.dob,
                                  billing_address=customer.billing_address,
                                  portfolio=list(chain(*portfolio_dict.values()))
-        )
+                                 )
 
         hlv_after = self.hlv_calculator.get_hlv(fake_customer)
 
@@ -42,8 +42,10 @@ class RewardCalculator:
 
 
 class HlvCalculator:
+    hlv_horizon_years = 5
+
     def get_hlv(self, customer: Customer) -> float:
         margin = 0.0
         for product in customer.portfolio:
-            margin += product.get_margin() * 5  # years
+            margin += product.get_margin() * self.hlv_horizon_years  # years
         return margin

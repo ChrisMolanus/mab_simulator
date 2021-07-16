@@ -18,7 +18,7 @@ call_center_daily_quota = 200
 cost_of_outbound_call = 8
 
 
-def policy_sim(policy_class, all_customers: List[Customer], actions: List[Action], day_count: int, output: Queue, run_id:int, sequential_runs: int) -> DataFrame:
+def policy_sim(policy_class, all_customers: List[Customer], all_actions: List[Action], day_count: int, output: Queue, run_id:int, sequential_runs: int) -> DataFrame:
     print(policy_class.__name__ + str(run_id))
     reward_calculator = RewardCalculator()
 
@@ -26,13 +26,16 @@ def policy_sim(policy_class, all_customers: List[Customer], actions: List[Action
 
     for s_run in range(sequential_runs):
         log: List[Dict[str, Any]] = list()
-        customers = all_customers.copy()
+        customers: List[Customer] = all_customers.copy()
         policy: Policy = policy_class()
         today = datetime.today().date()
-        for action in actions:
+        actions: List[Action] = list()
+        for action in all_actions:
             # So not today == action.start_date, that is later
             if action.start_date < today < action.end_date:
                 policy.add_arm(action, [1])
+            else:
+                actions.append(action)
         served_action_propensities: Dict[int, ServedActionPropensity] = dict()
         action_timeout: Dict[datetime, dict[int, ServedActionPropensity]] = dict()
 
@@ -45,18 +48,28 @@ def policy_sim(policy_class, all_customers: List[Customer], actions: List[Action
             policy.set_datetime(today_datetime)
 
             # Add new actions that are available from today
+            actions_to_remove = list()
             for action in actions:
                 if today == action.start_date:
                     policy.add_arm(action, [1])
+                    actions_to_remove.append(action)
+            for action in actions_to_remove:
+                actions.remove(action)
 
             # Select a set of people that we can call today
             todays_served_action_propensities = list()
+            todays_call_served_action_propensities = list()
+            todays_email_served_action_propensities = list()
             while len(todays_served_action_propensities) < call_center_daily_quota and len(customers) > 0:
                 customer = customers.pop()
                 if customer.id not in served_action_propensities:
                     served_action_propensity = policy.get_next_best_action(customer=customer, segment_ids=[1])
                     if served_action_propensity is not None:
                         todays_served_action_propensities.append(served_action_propensity)
+                        if served_action_propensity.chosen_action.channel == Channel.OUTBOUND_CALL:
+                            todays_call_served_action_propensities.append(served_action_propensity)
+                        elif served_action_propensity.chosen_action.channel == Channel.OUTBOUND_EMAIL:
+                            todays_email_served_action_propensities.append(served_action_propensity)
                         served_action_propensities[customer.id] = served_action_propensity
 
             # Look for old actions that have timed out
@@ -79,8 +92,14 @@ def policy_sim(policy_class, all_customers: List[Customer], actions: List[Action
                 if deadline not in action_timeout:
                     action_timeout[deadline] = dict()
                 action_timeout[deadline][customer.id] = served_action_propensity
-                customer_action = what_would_a_customer_do(served_action_propensity.customer, served_action_propensity.chosen_action, today_datetime)
+                customer_action = what_would_a_customer_do(served_action_propensity.customer,
+                                                           served_action_propensity.chosen_action,
+                                                           today_datetime)
                 call_counter += 1
+                policy.add_company_action(served_action_propensity,
+                                          served_action_propensity.chosen_action,
+                                          today,
+                                          cost_of_outbound_call)
 
                 # See if we have inidiat reward
                 if isinstance(customer_action, Transaction):
@@ -98,12 +117,14 @@ def policy_sim(policy_class, all_customers: List[Customer], actions: List[Action
             log.append({"ts": today, "cumulative_reward": cumulative_reward})
         logs.append(log)
     output.put({"policy": policy_class.__name__, "logs": logs})
+    print(f"{policy_class.__name__} end")
+    return True
 
 
 if __name__ == "__main__":
     policies = [fierceCrayfish.FierceCrayfish, dashingRingtail.DashingRingtail]
-    runs_per_policies = 2
-    sequential_runs = 5
+    runs_per_policies = 5
+    sequential_runs = 1
 
     processes = list()
     customers = generate_customers(100000)

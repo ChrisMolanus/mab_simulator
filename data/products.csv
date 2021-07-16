@@ -1,12 +1,12 @@
-id;brand;name;commercial_description;monthly_list_price;download_speed;upload_speed;yearly_list_price;yearly_margin;segment_size
-1;Ziggo;Internet Z1;E-mailen, internetten, foto's bekijken en je bankzaken online regelen. Het kan allemaal zeer voordelig met Z1.;37.15;80;10;446;176;0.14
-2;Ziggo;Alles-in-1 Basis;Televisie, Internet en Telefonie in één pakket. Dat is een stuk voordeliger en overzichtelijker.;42.71;100;10;513;203;0.051
-3;Ziggo;Internet Z2;Z2 is een abonnement voor het hele gezin. Surfen, e-mailen, downloaden, foto's versturen en gamen.;47.15;300;30;566;221;0.48
-4;Ziggo;Alles-in-1 Plus;Televisie, Internet en Telefonie in één pakket. Dat is een stuk voordeliger en overzichtelijker.;52.00;500;50;624;247;0.17
-5;Ziggo;Internet Z3;Grote bestanden snel up- en downloaden, online gamen of genieten van streaming audio en video.;65.15;600;40;782;309;0.005
-6;Ziggo;Alles-in-1 Extra;Televisie, Internet en Telefonie in één pakket. Dat is een stuk voordeliger en overzichtelijker.;67.00;1000;50;804;320;0.003
-7;Ziggo;Internet Start & TV Start;Snel internet en interactieve tv in één pakket;53.00;70;10;523;206;0.02
-8;Ziggo;Internet Complete & TV Start;Snel internet en interactieve tv in één pakket;63.45;300;30;560;219;0.06
-9;Ziggo;Internet Complete;10 keer bekroond tot beste internetprovider door Tweakers;58.95;300;30;533;210;0.05
-10;Ziggo;Internet Max & Kabel TV;Supersnel internet tot 600 Mbit/s;66.50;600;40;798;317;0.02
-11;Ziggo;Internet Giga & Kabel TV;Het krachtigste internet tot 1 Gbit/s;71.50;1000;50;858;341;0.001
+id;brand;name;commercial_description;monthly_list_price;download_speed;upload_speed;yearly_list_price;yearly_margin;segment_size;start_date;end_date
+1;Ziggo;Internet Z1;E-mailen, internetten, foto's bekijken en je bankzaken online regelen. Het kan allemaal zeer voordelig met Z1.;37.15;80;10;446;176;0.14;2016-01-01;2018-12-31
+2;Ziggo;Alles-in-1 Basis;Televisie, Internet en Telefonie in één pakket. Dat is een stuk voordeliger en overzichtelijker.;42.71;100;10;513;203;0.051;2016-01-01;2018-12-31
+3;Ziggo;Internet Z2;Z2 is een abonnement voor het hele gezin. Surfen, e-mailen, downloaden, foto's versturen en gamen.;47.15;300;30;566;221;0.48;2016-01-01;2018-12-31
+4;Ziggo;Alles-in-1 Plus;Televisie, Internet en Telefonie in één pakket. Dat is een stuk voordeliger en overzichtelijker.;52.00;500;50;624;247;0.17;2016-01-01;2018-12-31
+5;Ziggo;Internet Z3;Grote bestanden snel up- en downloaden, online gamen of genieten van streaming audio en video.;65.15;600;40;782;309;0.005;2016-01-01;2018-12-31
+6;Ziggo;Alles-in-1 Extra;Televisie, Internet en Telefonie in één pakket. Dat is een stuk voordeliger en overzichtelijker.;67.00;1000;50;804;320;0.003;2016-01-01;2018-12-31
+7;Ziggo;Internet Start & TV Start;Snel internet en interactieve tv in één pakket;53.00;70;10;523;206;0.02;2019-01-01;2024-12-31
+8;Ziggo;Internet Complete & TV Start;Snel internet en interactieve tv in één pakket;63.45;300;30;560;219;0.06;2019-01-01;2024-12-31
+9;Ziggo;Internet Complete;10 keer bekroond tot beste internetprovider door Tweakers;58.95;300;30;533;210;0.05;2019-01-01;2024-12-31
+10;Ziggo;Internet Max & Kabel TV;Supersnel internet tot 600 Mbit/s;66.50;600;40;798;317;0.02;2019-01-01;2024-12-31
+11;Ziggo;Internet Giga & Kabel TV;Het krachtigste internet tot 1 Gbit/s;71.50;1000;50;858;341;0.001;2019-01-01;2024-12-31
