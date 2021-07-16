@@ -15,6 +15,7 @@ from policy import ServedActionPropensity, Policy, Customer, Address, Product, C
 from rewardCalculator import RewardCalculator
 
 call_center_daily_quota = 200
+cost_of_outbound_call = 8
 
 
 def policy_sim(policy_class, all_customers: List[Customer], actions: List[Action], day_count: int, output: Queue, run_id:int, sequential_runs: int) -> DataFrame:
@@ -84,6 +85,7 @@ def policy_sim(policy_class, all_customers: List[Customer], actions: List[Action
                 # See if we have inidiat reward
                 if isinstance(customer_action, Transaction):
                     reward = reward_calculator.calculate(served_action_propensity.customer, customer_action)
+                    reward -= cost_of_outbound_call
                     policy.add_customer_action(served_action_propensity=served_action_propensity,
                                                customer_action=customer_action,
                                                reward=reward)
