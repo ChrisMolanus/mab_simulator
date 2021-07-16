@@ -37,19 +37,22 @@ def get_actions() -> List[Action]:
         reader = csv.DictReader(infile, delimiter=';')
         for row in reader:
             products.append(Product(id=row["id"], name=row["name"], list_price=float(row["yearly_list_price"]),
-                                    margin=float(row["yearly_margin"]), product_type=ProductType.FIXED_INTERNET, download_speed=float(row["download_speed"]), upload_speed=float(row["upload_speed"])))
+                                    margin=float(row["yearly_margin"]), product_type=ProductType.FIXED_INTERNET,
+                                    start_date=datetime. strptime(row["start_date"], '%Y-%m-%d').date(),
+                                    end_date=datetime.strptime(row["end_date"], '%Y-%m-%d').date(),
+                                    download_speed=float(row["download_speed"]), upload_speed=float(row["upload_speed"])))
     actions: List[Action] = list()
     for channel in Channel:
         for product in products:
             for template in templates:
                 offer = Offer(name=f"Offer {product.name}", products=[product])
                 content = Content(name=f"Content for Offer {product.name} in channel {channel}", channel=channel, template=template)
-                actions.append(Action(name=f"Sell {product.name} in {channel}",
+                actions.append(Action(name=f"Sell {product.name} in {channel} using {template}",
                                       channel=channel,
                                       offer=offer,
                                       content=content,
-                                      start_date=datetime.today().date(),
-                                      end_date=(datetime.today()+timedelta(weeks=53)).date(),
+                                      start_date=product.start_date,
+                                      end_date=product.end_date,
                                       cool_off_days=21
                                ))
     return actions

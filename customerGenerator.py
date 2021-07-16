@@ -15,7 +15,10 @@ def generate_portfolios(nr_of_customers) -> List[List[Product]]:
         reader = csv.DictReader(infile, delimiter=';')
         for row in reader:
             products.append(Product(id=row["id"], name=row["name"], list_price=float(row["yearly_list_price"]),
-                                    margin=float(row["yearly_margin"]), product_type=ProductType.FIXED_INTERNET, download_speed=float(row["download_speed"]), upload_speed=float(row["upload_speed"])))
+                                    margin=float(row["yearly_margin"]), product_type=ProductType.FIXED_INTERNET,
+                                    start_date=datetime.strptime(row["start_date"], '%Y-%m-%d'),
+                                    end_date=datetime.strptime(row["end_date"], '%Y-%m-%d'),
+                                    download_speed=float(row["download_speed"]), upload_speed=float(row["upload_speed"])))
             product_market_size.append(float(row["segment_size"]))
 
     return [[p] for p in np.random.choice(products, nr_of_customers, p=product_market_size)]

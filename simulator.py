@@ -27,6 +27,11 @@ def policy_sim(policy_class, all_customers: List[Customer], actions: List[Action
         log: List[Dict[str, Any]] = list()
         customers = all_customers.copy()
         policy: Policy = policy_class()
+        today = datetime.today().date()
+        for action in actions:
+            # So not today == action.start_date, that is later
+            if action.start_date < today < action.end_date:
+                policy.add_arm(action, [1])
         served_action_propensities: Dict[int, ServedActionPropensity] = dict()
         action_timeout: Dict[datetime, dict[int, ServedActionPropensity]] = dict()
 

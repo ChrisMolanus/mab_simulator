@@ -13,7 +13,7 @@ class ProductType(Enum):
 
 
 class Product:
-    def __init__(self, id: int, name: str, list_price: float, margin: float, product_type: ProductType, **kwargs):
+    def __init__(self, id: int, name: str, list_price: float, margin: float, product_type: ProductType, start_date: date, end_date: date, **kwargs):
         """
         Something that was sold/given to a customer, E.g. Hardware, Service contract, discount
         :param id: The product ID as it is knows in the accounting system
@@ -21,12 +21,16 @@ class Product:
         :param list_price: The price as it would appear on a customer bill
         :param margin: The margin that is directly made on the sale of this product
         :param product_type: The type of product
+        :param start_date: The date when this prod could have been cold for the first time
+        :param end_date: The date when this product could npo longer be sold
         """
         self.id = id
         self.name = name
         self.list_price = list_price
         self._margin = margin
         self.product_type = product_type
+        self.start_date = start_date
+        self.end_date = end_date
         self.kwargs = kwargs
 
     def get_margin(self, base_product=None) -> float:
