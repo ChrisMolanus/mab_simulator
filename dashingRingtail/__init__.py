@@ -10,10 +10,10 @@ from rewardCalculator import RewardCalculator
 
 
 class Arm:
-    def __init__(self, action: Action):
+    def __init__(self, action: Action, number_of_impressions: float = 99.0, number_of_conversions: float = 1.0):
         self.action = action
-        self.number_of_impressions = 99.0
-        self.number_of_conversions = 1.0
+        self.number_of_impressions = number_of_impressions
+        self.number_of_conversions = number_of_conversions
 
     def get_conversion_rate(self) -> float:
         return self.number_of_conversions/self.number_of_impressions
@@ -23,7 +23,7 @@ class Arm:
 
 
 class DashingRingtail(Policy):
-    def __init__(self, epsilon: float = 0.8, resort_batch_size: int = 50):
+    def __init__(self, epsilon: float, resort_batch_size: int, **kwargs):
         """
         Epsilon greedy
         """
