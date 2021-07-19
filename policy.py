@@ -44,6 +44,9 @@ class Product:
     def __eq__(self, other):
         return self.name == other.name
 
+    def __str__(self):
+        return self.name
+
 
 class Discount(Product):
     def __init__(self, id: int, name: str, list_price: float, margin: float, product_type: ProductType= ProductType.DISCOUNT, **kwargs):
@@ -70,12 +73,18 @@ class Discount(Product):
         """
         return base_product.get_margin() + self._margin
 
+    def __str__(self):
+        return self.name
+
 
 class Address:
     def __init__(self, postcode: str, house_number: int, ext: str):
         self.postcode = postcode
         self.house_number = house_number
         self.ext = ext
+
+    def __str__(self):
+        return f"{self.postcode} {self.house_number} {self.ext}"
 
 
 class Customer:
