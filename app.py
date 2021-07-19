@@ -32,6 +32,7 @@ st.write("##")
 
 customers = generate_customers(1)
 actions = get_actions()
+products, product_market_size = get_products()
 
 cust_col1, cust_col2, cust_col3 = st.beta_columns((2, 1, 1))
 with cust_col1:
@@ -59,6 +60,8 @@ with cust_col2:
     st.markdown('')
 
     portfolio_count = dict()
+    for product in products:
+        portfolio_count[product.name] = 0
     max_product_name_length = 0
     for cust in customers:
         product_name = cust.portfolio[0].name
@@ -73,7 +76,10 @@ with cust_col2:
     fig, ax = plt.subplots()
     langs = list()
     students = list()
-    for product_name, count in portfolio_count.items():
+    for product in products:
+    #for product_name, count in portfolio_count.items():
+        product_name = product.name
+        count = portfolio_count[product_name]
         langs.append(product_name)
         students.append(count)
     ax.bar(langs, students, alpha =0.3)
@@ -84,7 +90,7 @@ with cust_col2:
 
 st.write("##")
 
-products, product_market_size = get_products()
+
 products_col1, products_col2, products_col3 = st.beta_columns((2, 1, 1))
 with products_col1:
     st.header("Products")
