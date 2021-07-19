@@ -1,4 +1,5 @@
-from datetime import datetime
+from datetime import datetime, timedelta
+import random
 from typing import Dict, List, Tuple
 
 import numpy as np
@@ -38,7 +39,7 @@ def generate_customers(nr_of_customers) -> List[Customer]:
         fake_address = Address(postcode=f"123{i}AB", house_number=i, ext=None)
         customers.append(Customer(id=i,
                                   name=f"{names[i]['lastname']}, {names[i]['firstname']}",
-                                  dob=datetime.today(),
+                                  dob=(datetime.today() - timedelta(days=random.randint(6570, 15000))).date(),
                                   billing_address=fake_address,
                                   portfolio=portfolios[i], ))
     return customers
