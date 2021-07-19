@@ -1,5 +1,5 @@
 from policy import Policy
 
 
-class FierceCrayfish(Policy):
+class RandomCrayfish(Policy):
     pass
