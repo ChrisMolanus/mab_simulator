@@ -184,7 +184,7 @@ class Transaction(CustomerAction):
 
 
 class Policy:
-    def __init__(self):
+    def __init__(self, **kwargs):
         self.applicable_actions: Dict[str, List[Action]] = dict()
 
     def add_arm(self, action: Action, segment_ids: List[str]):

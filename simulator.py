@@ -18,7 +18,8 @@ call_center_daily_quota = 200
 cost_of_outbound_call = 8
 
 
-def policy_sim(policy_class, all_customers: List[Customer], all_actions: List[Action], day_count: int, output: Queue, run_id:int, sequential_runs: int) -> DataFrame:
+def policy_sim(policy_class, all_customers: List[Customer], all_actions: List[Action], day_count: int, output: Queue,
+               run_id:int, sequential_runs: int, **kwargs) -> DataFrame:
     print(policy_class.__name__ + str(run_id))
     reward_calculator = RewardCalculator()
 
@@ -27,7 +28,7 @@ def policy_sim(policy_class, all_customers: List[Customer], all_actions: List[Ac
     for s_run in range(sequential_runs):
         log: List[Dict[str, Any]] = list()
         customers: List[Customer] = all_customers.copy()
-        policy: Policy = policy_class()
+        policy: Policy = policy_class(**kwargs)
         today = datetime.today().date()
         actions: List[Action] = list()
         for action in all_actions:
@@ -132,7 +133,10 @@ if __name__ == "__main__":
     output_queue = Queue()
     for policy_class in policies:
         for r in range(runs_per_policies):
-            p = Process(target=policy_sim, args=(policy_class, customers, actions, 365, output_queue, r, sequential_runs))
+            keywords = {'epsilon': 0.8, 'resort_batch_size': 50, "initial_trials":99, "initial_conversions":1}
+            p = Process(target=policy_sim,
+                        args=(policy_class, customers, actions, 365, output_queue, r, sequential_runs),
+                        kwargs=keywords)
             p.start()
             processes.append(p)
 
@@ -167,7 +171,12 @@ if __name__ == "__main__":
 
     fig, ax = plt.subplots()
     for policy_name, policy in plot_dfs.items():
-        ax.plot(policy["ts"], policy["mean"]/1000, label=policy_name)
+        policy["mean_k"] = policy["mean"] / 1000
+        policy["std_u"] = policy["mean_k"] + (policy["std"] /1000)
+        policy["std_l"] = policy["mean_k"] - (policy["std"] /1000)
+
+        ax.fill_between(policy["ts"], policy["std_l"], policy["std_u"])
+        ax.plot(policy["ts"], policy["mean_k"], label=policy_name)
 
     ax.set(xlabel='time (days)', ylabel='Cumulative HLV (1000 Euros)',
            title='Policy performance')
