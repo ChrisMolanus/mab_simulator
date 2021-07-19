@@ -2,6 +2,7 @@ import csv
 from datetime import datetime, timedelta
 from typing import List
 
+from customerGenerator import get_products
 from policy import Product, Action, Channel, Offer, Content, Template, ProductType
 
 
@@ -32,15 +33,8 @@ templates = [
 
 
 def get_actions() -> List[Action]:
-    products: List[Product] = list()
-    with open('data/products.csv', mode='r') as infile:
-        reader = csv.DictReader(infile, delimiter=';')
-        for row in reader:
-            products.append(Product(id=row["id"], name=row["name"], list_price=float(row["yearly_list_price"]),
-                                    margin=float(row["yearly_margin"]), product_type=ProductType.FIXED_INTERNET,
-                                    start_date=datetime. strptime(row["start_date"], '%Y-%m-%d').date(),
-                                    end_date=datetime.strptime(row["end_date"], '%Y-%m-%d').date(),
-                                    download_speed=float(row["download_speed"]), upload_speed=float(row["upload_speed"])))
+    products, product_market_size = get_products()
+
     actions: List[Action] = list()
     for channel in Channel:
         for product in products:

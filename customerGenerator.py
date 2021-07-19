@@ -8,7 +8,7 @@ import csv
 from policy import ProductType, Product, Customer, Address, Action, CustomerAction, Transaction
 
 
-def generate_portfolios(nr_of_customers) -> List[List[Product]]:
+def get_products():
     products: List[Product] = list()
     product_market_size: List[float] = list()
     with open('data/products.csv', mode='r') as infile:
@@ -16,10 +16,16 @@ def generate_portfolios(nr_of_customers) -> List[List[Product]]:
         for row in reader:
             products.append(Product(id=row["id"], name=row["name"], list_price=float(row["yearly_list_price"]),
                                     margin=float(row["yearly_margin"]), product_type=ProductType.FIXED_INTERNET,
-                                    start_date=datetime.strptime(row["start_date"], '%Y-%m-%d'),
-                                    end_date=datetime.strptime(row["end_date"], '%Y-%m-%d'),
-                                    download_speed=float(row["download_speed"]), upload_speed=float(row["upload_speed"])))
+                                    start_date=datetime.strptime(row["start_date"], '%Y-%m-%d').date(),
+                                    end_date=datetime.strptime(row["end_date"], '%Y-%m-%d').date(),
+                                    download_speed=float(row["download_speed"]),
+                                    upload_speed=float(row["upload_speed"])))
             product_market_size.append(float(row["segment_size"]))
+    return products, product_market_size
+
+
+def generate_portfolios(nr_of_customers) -> List[List[Product]]:
+    products, product_market_size = get_products()
 
     return [[p] for p in np.random.choice(products, nr_of_customers, p=product_market_size)]
 
