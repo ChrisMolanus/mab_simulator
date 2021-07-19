@@ -143,6 +143,8 @@ with products_col2:
     ax.set_xlim(0, 1)
     ax.set_ylim(400, 900)
     ax.yaxis.set_major_formatter(ticker.FormatStrFormatter('€ %.0f'))
+    ax.set_ylabel("List Price")
+    ax.set_xlabel("Perceived Quality")
 
     st.pyplot(fig)
 
