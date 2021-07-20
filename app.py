@@ -271,7 +271,6 @@ def do_simulations(runs_per_policies, sequential_runs, customers, actions,
 
     for p in processes:
         output_logs = output_queue.get(block=True)
-        #for policy_name, run_logs in logs.items():
         logs = output_logs["logs"]
         policy_name = output_logs["policy"]
         for log in logs:
@@ -311,9 +310,9 @@ def do_simulations(runs_per_policies, sequential_runs, customers, actions,
 if __name__ == '__main__':
     freeze_support()
 
-    row3_col1, row3_col2 = st.beta_columns(2)
-
-    with row3_col1:
-        st.subheader('Policy performance')
-        # fig = do_simulations(runs_per_policies, sequential_runs)
-        # st.pyplot(fig)
+    with row3_col2:
+        run = st.checkbox("Run Simulator")
+        if run:
+            fig = do_simulations(runs_per_policies, sequential_runs, customers, actions,
+                                 epsilon, resort_batch_size, initial_trials, initial_wins)
+            st.pyplot(fig)
