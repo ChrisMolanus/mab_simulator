@@ -11,6 +11,7 @@ from matplotlib import ticker
 from pandas import DataFrame
 import scipy.stats as stats
 
+import bayesianGroundhog
 import dashingRingtail
 import randomCrayfish
 from actionGenerator import get_actions
@@ -243,17 +244,18 @@ with row3_col1:
     st.header("Simulator")
     runs_per_policies = st.slider(label="Threads per policy", min_value=1, max_value=4, value=1, step=1)
     sequential_runs = st.slider(label="Sequential runs per thread", min_value=1, max_value=10, value=1, step=1)
+    st.subheader('Policy performance')
 
 
-def do_simulations(runs_per_policies, sequential_runs):
-    policies = [randomCrayfish.RandomCrayfish, dashingRingtail.DashingRingtail]
+def do_simulations(runs_per_policies, sequential_runs, customers, actions,
+                   epsilon, resort_batch_size,initial_trials, initial_conversions):
+    policies = [randomCrayfish.RandomCrayfish, dashingRingtail.DashingRingtail, bayesianGroundhog.BayesianGroundhog]
 
     processes = list()
-
     output_queue = Queue()
     for policy_class in policies:
         for r in range(runs_per_policies):
-            keywords = {'epsilon': epsilon, 'resort_batch_size': resort_batch_size}
+            keywords = {'epsilon': epsilon, 'resort_batch_size': resort_batch_size, "initial_trials": initial_trials, "initial_conversions": initial_conversions}
             p = Process(target=policy_sim,
                         args=(policy_class, customers, actions, 365, output_queue, r, sequential_runs),
                         kwargs=keywords)
