@@ -26,6 +26,10 @@ def policy_sim(policy_class, all_customers: List[Customer], all_actions: List[Ac
 
     logs: List[List[Dict[str, Any]]] = list()
 
+    if run_id == 0:
+        # Only one sim should create a sample offer distribution plot
+        chosen_action_log: Dict[datetime, Dict[str, int]] = dict()
+
     for s_run in range(sequential_runs):
         log: List[Dict[str, Any]] = list()
         customers: List[Customer] = all_customers.copy()
@@ -46,6 +50,12 @@ def policy_sim(policy_class, all_customers: List[Customer], all_actions: List[Ac
         for today_datetime in (start_date + timedelta(n) for n in range(day_count)):
             today = today_datetime.date()
             action_timeout[today] = dict()
+            if run_id == 0:
+                chosen_action_log[today] = dict()
+                for action in all_actions:
+                    chosen_action_log[today][action.name] = 0
+            if run_id == 0:
+                chosen_action_log[today]["No Action"] = 0
 
             policy.set_datetime(today_datetime)
 
@@ -73,6 +83,11 @@ def policy_sim(policy_class, all_customers: List[Customer], all_actions: List[Ac
                         elif served_action_propensity.chosen_action.channel == Channel.OUTBOUND_EMAIL:
                             todays_email_served_action_propensities.append(served_action_propensity)
                         served_action_propensities[customer.id] = served_action_propensity
+                        if run_id == 0:
+                            chosen_action_log[today][served_action_propensity.chosen_action.name] += 1
+                    else:
+                        if run_id == 0:
+                            chosen_action_log[today]["No Action"] += 1
 
             # Look for old actions that have timed out
             if today in action_timeout:
@@ -118,7 +133,11 @@ def policy_sim(policy_class, all_customers: List[Customer], all_actions: List[Ac
 
             log.append({"ts": today, "cumulative_reward": cumulative_reward})
         logs.append(log)
-    output.put({"policy": policy_class.__name__, "logs": logs})
+    if run_id == 0:
+        # Only the last chosen_action_log
+        output.put({"policy": policy_class.__name__, "logs": logs, "chosen_action_log": chosen_action_log})
+    else:
+        output.put({"policy": policy_class.__name__, "logs": logs})
     print(f"{policy_class.__name__} end")
     return True
 
@@ -143,6 +162,7 @@ if __name__ == "__main__":
 
     all_logs: Dict[str, Dict[datetime, List[float]]] = dict()
     plot_dict: Dict[str, List[Dict[datetime, dict]]] = dict()
+    timeline_plot_dict: Dict[str, Dict[datetime, Dict[str, int]]] = dict()
     for policy_class in policies:
         policy_name = policy_class.__name__
         all_logs[policy_name] = dict()
@@ -159,11 +179,47 @@ if __name__ == "__main__":
                 if ts not in all_logs[policy_name]:
                     all_logs[policy_name][ts] = list()
                 all_logs[policy_name][ts].append(cum_reward)
+        if "chosen_action_log" in output_logs:
+            # This was a run_id 0 sim
+            timeline_plot_dict[policy_name] = output_logs["chosen_action_log"]
 
     for p in processes:
         if p.is_alive():
             p.join()
 
+
+    # Plot timelines
+    xs: Dict[str, List[datetime]] = dict()
+    policy_labels: Dict[str, List[str]] = dict()
+    ys: Dict[str, List[List[int]]] = dict()
+    for policy_name, chosen_action_log in timeline_plot_dict.items():
+        labels: List[str] = list()
+        x: List[datetime] = list(chosen_action_log.keys())
+        x.sort()
+        y_per_action: List[List[int]] = list()
+        for action in actions:
+            y_per_action.append(list())
+            labels.append(action.name)
+        for day in x:
+            chosen_action_counts = chosen_action_log[day]
+            for i in range(len(labels)):
+                action_name = labels[i]
+                if action_name in chosen_action_counts:
+                    y_per_action[i].append(chosen_action_counts[action_name])
+                else:
+                    y_per_action[i].append(0)
+        xs[policy_name] = x
+        policy_labels[policy_name] = labels
+        ys[policy_name] = y_per_action
+
+        # Basic stacked area chart.
+        plt.stackplot(x, *y_per_action) #, labels=labels)
+        plt.title(policy_name)
+        #plt.legend(loc='upper left')
+        plt.show()
+
+
+    # Plot performace
     plot_dfs: Dict[str, DataFrame] = dict()
     for policy, log in all_logs.items():
         for ts, sim_values in log.items():

@@ -239,14 +239,6 @@ with bayesian_col2:
     st.pyplot(fig)
 
 
-row3_col1, row3_col2 = st.beta_columns(2)
-with row3_col1:
-    st.header("Simulator")
-    runs_per_policies = st.slider(label="Threads per policy", min_value=1, max_value=4, value=1, step=1)
-    sequential_runs = st.slider(label="Sequential runs per thread", min_value=1, max_value=10, value=1, step=1)
-    st.subheader('Policy performance')
-
-
 def do_simulations(runs_per_policies, sequential_runs, customers, actions,
                    epsilon, resort_batch_size,initial_trials, initial_conversions):
     policies = [randomCrayfish.RandomCrayfish, dashingRingtail.DashingRingtail, bayesianGroundhog.BayesianGroundhog]
@@ -264,6 +256,7 @@ def do_simulations(runs_per_policies, sequential_runs, customers, actions,
 
     all_logs: Dict[str, Dict[datetime, List[float]]] = dict()
     plot_dict: Dict[str, List[Dict[datetime, dict]]] = dict()
+    timeline_plot_dict: Dict[str, Dict[datetime, Dict[str, int]]] = dict()
     for policy_class in policies:
         policy_name = policy_class.__name__
         all_logs[policy_name] = dict()
@@ -280,17 +273,62 @@ def do_simulations(runs_per_policies, sequential_runs, customers, actions,
                 if ts not in all_logs[policy_name]:
                     all_logs[policy_name][ts] = list()
                 all_logs[policy_name][ts].append(cum_reward)
+        if "chosen_action_log" in output_logs:
+            # This was a run_id 0 sim
+            timeline_plot_dict[policy_name] = output_logs["chosen_action_log"]
 
     for p in processes:
         if p.is_alive():
             p.join()
 
+    # Timelines
+    xs: Dict[str, List[datetime]] = dict()
+    policy_labels: Dict[str, List[str]] = dict()
+    ys: Dict[str, List[List[int]]] = dict()
+    for policy_name, chosen_action_log in timeline_plot_dict.items():
+        labels: List[str] = list()
+        x: List[datetime] = list(chosen_action_log.keys())
+        x.sort()
+        y_per_action: List[List[int]] = list()
+        for action in actions:
+            y_per_action.append(list())
+            labels.append(action.name)
+        for day in x:
+            chosen_action_counts = chosen_action_log[day]
+            total_chosen_actions_that_day = sum(list(chosen_action_counts.values()))
+            for i in range(len(labels)):
+                action_name = labels[i]
+                if action_name in chosen_action_counts:
+                    y_per_action[i].append(chosen_action_counts[action_name]/total_chosen_actions_that_day)
+                else:
+                    y_per_action[i].append(0)
+        xs[policy_name] = x
+        policy_labels[policy_name] = labels
+        ys[policy_name] = y_per_action
+
+
+    # Performance
     plot_dfs: Dict[str, DataFrame] = dict()
     for policy, log in all_logs.items():
         for ts, sim_values in log.items():
             plot_dict[policy].append({"ts": ts, "mean": np.mean(sim_values), "std": np.std(sim_values)})
         plot_dfs[policy] = DataFrame(plot_dict[policy])
 
+    return plot_dfs, xs, policy_labels, ys
+
+def get_timeline_plot(x, y_per_action, label):
+    # Basic stacked area chart.
+    fig, ax = plt.subplots()
+    ax.stackplot(x, *y_per_action)  # , labels=labels)
+    # plt.title(policy_name)
+    # plt.legend(loc='upper left')
+    # plt.show()
+    ax.set(xlabel='time (days)', ylabel='NBA allocations',
+           title=label)
+    return fig
+
+
+def get_performance_plot(plot_dfs):
     fig, ax = plt.subplots()
     for policy_name, policy in plot_dfs.items():
         policy["mean_k"] = policy["mean"] / 1000
@@ -306,6 +344,12 @@ def do_simulations(runs_per_policies, sequential_runs, customers, actions,
     plt.legend()
     return fig
 
+row3_col1, row3_col2, row3_col3 = st.beta_columns((2, 1, 1))
+with row3_col1:
+    st.header("Simulator")
+    runs_per_policies = st.slider(label="Threads per policy", min_value=1, max_value=4, value=1, step=1)
+    sequential_runs = st.slider(label="Sequential runs per thread", min_value=1, max_value=10, value=1, step=1)
+    st.subheader('Policy performance')
 
 if __name__ == '__main__':
     freeze_support()
@@ -313,6 +357,11 @@ if __name__ == '__main__':
     with row3_col2:
         run = st.checkbox("Run Simulator")
         if run:
-            fig = do_simulations(runs_per_policies, sequential_runs, customers, actions,
+            plot_dfs, xs, policy_labels, ys = do_simulations(runs_per_policies, sequential_runs, customers, actions,
                                  epsilon, resort_batch_size, initial_trials, initial_wins)
-            st.pyplot(fig)
+            st.pyplot(get_performance_plot(plot_dfs))
+    with row3_col3:
+        if run:
+            for policy_name in policy_labels.keys():
+                st.subheader(policy_name)
+                st.pyplot(get_timeline_plot(xs[policy_name], ys[policy_name], policy_name))
