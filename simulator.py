@@ -1,5 +1,6 @@
 import csv
 from datetime import datetime, timedelta
+from random import seed
 from typing import Dict, List, Any
 from multiprocessing import Process, Queue
 
@@ -22,6 +23,8 @@ cost_of_outbound_call = 8
 def policy_sim(policy_class, all_customers: List[Customer], all_actions: List[Action], day_count: int, output: Queue,
                run_id:int, sequential_runs: int, **kwargs) -> DataFrame:
     print(policy_class.__name__ + str(run_id))
+    seed(7831*run_id)
+    np.random.seed(7831*run_id)
     reward_calculator = RewardCalculator()
 
     logs: List[List[Dict[str, Any]]] = list()
