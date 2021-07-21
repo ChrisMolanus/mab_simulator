@@ -38,7 +38,7 @@ products, product_market_size = get_products()
 cust_col1, cust_col2, cust_col3 = st.beta_columns((2, 1, 1))
 with cust_col1:
     st.header("Customers")
-    nr_of_customers: float = st.slider(label="Base Size", min_value=10000, max_value=800000, value=100000, step=100000)
+    nr_of_customers: float = st.slider(label="Base Size", min_value=10000, max_value=800000, value=100000, step=10000)
     #resort_batch_size: int = st.slider(label="Batch size", min_value=1, max_value=201, value=51, step=10)
 
     customers = generate_customers(nr_of_customers)
