@@ -85,6 +85,8 @@ with cust_col2:
         students.append(count)
     ax.bar(langs, students, alpha =0.3)
     ax.tick_params(labelrotation=90)
+    ax.set_ylabel("Segment size")
+    #ax.set_xlabel("Perceived Quality")
     st.pyplot(fig)
 
 
