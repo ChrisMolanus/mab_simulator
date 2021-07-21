@@ -16,13 +16,11 @@ import epsilonRingtail
 import randomCrayfish
 from actionGenerator import get_actions
 from customerGenerator import generate_customers, get_products
-from simulator import policy_sim
+from simulator import policy_sim, get_performance_plot, get_timeline_plot
 
 st.set_page_config(layout="wide")
 
 matplotlib.use("agg")
-
-
 
 row1_col1, row1_col2 = st.beta_columns(2)
 with row1_col1:
@@ -311,40 +309,15 @@ def do_simulations(runs_per_policies, sequential_runs, customers, actions,
 
     # Performance
     plot_dfs: Dict[str, DataFrame] = dict()
+    last_mean_value: Dict[str, float] = dict()
     for policy, log in all_logs.items():
         for ts, sim_values in log.items():
             plot_dict[policy].append({"ts": ts, "mean": np.mean(sim_values), "std": np.std(sim_values)})
+            last_mean_value[policy] = np.mean(sim_values)
         plot_dfs[policy] = DataFrame(plot_dict[policy])
 
-    return plot_dfs, xs, policy_labels, ys
+    return plot_dfs, xs, policy_labels, ys, last_mean_value
 
-def get_timeline_plot(x, y_per_action, label):
-    # Basic stacked area chart.
-    fig, ax = plt.subplots()
-    ax.stackplot(x, *y_per_action)  # , labels=labels)
-    # plt.title(policy_name)
-    # plt.legend(loc='upper left')
-    # plt.show()
-    ax.set(xlabel='time (days)', ylabel='NBA allocations',
-           title=label)
-    return fig
-
-
-def get_performance_plot(plot_dfs):
-    fig, ax = plt.subplots()
-    for policy_name, policy in plot_dfs.items():
-        policy["mean_k"] = policy["mean"] / 1000
-        policy["std_u"] = policy["mean_k"] + (policy["std"] / 1000)
-        policy["std_l"] = policy["mean_k"] - (policy["std"] / 1000)
-
-        ax.fill_between(policy["ts"], policy["std_l"], policy["std_u"], alpha=0.2)
-        ax.plot(policy["ts"], policy["mean_k"], label=policy_name)
-
-    ax.set(xlabel='time (days)', ylabel='Cumulative HLV (1000 Euros)',
-           title='Policy performance')
-    ax.grid()
-    plt.legend()
-    return fig
 
 row3_col1, row3_col2, row3_col3 = st.beta_columns((2, 1, 1))
 with row3_col1:
@@ -359,9 +332,11 @@ if __name__ == '__main__':
     with row3_col2:
         run = st.checkbox("Run Simulator")
         if run:
-            plot_dfs, xs, policy_labels, ys = do_simulations(runs_per_policies, sequential_runs, customers, actions,
+            plot_dfs, xs, policy_labels, ys, last_mean_value = do_simulations(runs_per_policies, sequential_runs, customers, actions,
                                  epsilon, resort_batch_size, initial_trials, initial_wins, day_count)
-            st.pyplot(get_performance_plot(plot_dfs))
+            ordered_policies_by_clv = sorted(last_mean_value, key=last_mean_value.get)
+            ordered_policies_by_clv.reverse()
+            st.pyplot(get_performance_plot(plot_dfs, ordered_policies_by_clv))
     with row3_col3:
         if run:
             for policy_name in policy_labels.keys():

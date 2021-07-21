@@ -145,6 +145,34 @@ def policy_sim(policy_class, all_customers: List[Customer], all_actions: List[Ac
     return True
 
 
+def get_timeline_plot(x, y_per_action, label):
+    # Basic stacked area chart.
+    fig, ax = plt.subplots()
+    ax.stackplot(x, *y_per_action)  # , labels=labels)
+    # plt.legend(loc='upper left')
+    ax.set(xlabel='time (days)', ylabel='NBA allocations',
+           title=label)
+    return fig
+
+
+def get_performance_plot(plot_dfs, sorted_policies):
+    fig, ax = plt.subplots()
+    for policy_name in sorted_policies:
+        policy = plot_dfs[policy_name]
+        euro = policy["mean"].iloc[-1]
+        policy["mean_k"] = policy["mean"] / 1000
+        policy["std_u"] = policy["mean_k"] + (policy["std"] / 1000)
+        policy["std_l"] = policy["mean_k"] - (policy["std"] / 1000)
+
+        ax.fill_between(policy["ts"], policy["std_l"], policy["std_u"], alpha=0.2)
+        ax.plot(policy["ts"], policy["mean_k"], label=f"{policy_name} €{euro}")
+
+    ax.set(xlabel='time (days)', ylabel='Cumulative HLV (1000 Euros)',
+           title='Policy performance')
+    ax.grid()
+    plt.legend()
+    return fig
+
 if __name__ == "__main__":
     policies = [bayesianGroundhog.BayesianGroundhog, randomCrayfish.RandomCrayfish, epsilonRingtail.EpsilonRingtail]
     runs_per_policies = 2
@@ -158,7 +186,7 @@ if __name__ == "__main__":
         for r in range(runs_per_policies):
             keywords = {'epsilon': 0.8, 'resort_batch_size': 50, "initial_trials":99, "initial_conversions":1}
             p = Process(target=policy_sim,
-                        args=(policy_class, customers, actions, 365, output_queue, r, sequential_runs),
+                        args=(policy_class, customers, actions, 20, output_queue, r, sequential_runs),
                         kwargs=keywords)
             p.start()
             processes.append(p)
@@ -215,35 +243,21 @@ if __name__ == "__main__":
         policy_labels[policy_name] = labels
         ys[policy_name] = y_per_action
 
-        # Basic stacked area chart.
-        plt.stackplot(x, *y_per_action) #, labels=labels)
-        plt.title(policy_name)
-        #plt.legend(loc='upper left')
-        plt.show()
-
-
     # Plot performace
     plot_dfs: Dict[str, DataFrame] = dict()
+    last_mean_value: Dict[str, float] = dict()
     for policy, log in all_logs.items():
         for ts, sim_values in log.items():
             plot_dict[policy].append({"ts": ts, "mean": np.mean(sim_values), "std": np.std(sim_values)})
+            last_mean_value[policy] = np.mean(sim_values)
         plot_dfs[policy] = DataFrame(plot_dict[policy])
 
-    fig, ax = plt.subplots()
-    for policy_name, policy in plot_dfs.items():
-        policy["mean_k"] = policy["mean"] / 1000
-        policy["std_u"] = policy["mean_k"] + (policy["std"] /1000)
-        policy["std_l"] = policy["mean_k"] - (policy["std"] /1000)
+    for policy_name in policy_labels.keys():
+        fig = get_timeline_plot(xs[policy_name], ys[policy_name], policy_name)
+        plt.show()
 
-        ax.fill_between(policy["ts"], policy["std_l"], policy["std_u"], alpha=0.2)
-        ax.plot(policy["ts"], policy["mean_k"], label=policy_name)
-
-    ax.set(xlabel='time (days)', ylabel='Cumulative HLV (1000 Euros)',
-           title='Policy performance')
-    ax.grid()
-    plt.legend()
-
+    ordered_policies_by_clv = sorted(last_mean_value, key=last_mean_value.get)
+    ordered_policies_by_clv.reverse()
+    fig = get_performance_plot(plot_dfs, ordered_policies_by_clv)
     fig.savefig("test.png")
     plt.show()
-
-
