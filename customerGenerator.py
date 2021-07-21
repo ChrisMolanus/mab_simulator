@@ -6,7 +6,7 @@ import numpy as np
 import xml.etree.ElementTree as ET
 import csv
 
-from policy import ProductType, Product, Customer, Address, Action, CustomerAction, Transaction
+from policy import ProductType, Product, Customer, Address, Action, CustomerAction, Transaction, Channel
 
 
 def get_products() -> Tuple[List[Product], List[float]]:
@@ -122,10 +122,13 @@ def what_would_a_customer_do(customer: Customer, action: Action, ts: datetime) -
             offer_internet = product
             break
 
-    # Only buy if offer is better that what we have and its only 10% more expensive and random chance is in your favour
+    # Realistic conventions rates for these channels [Convert, Reject/ignore]
+    conversion_per_channel = {Channel.OUTBOUND_EMAIL: [0.001, 0.999], Channel.OUTBOUND_CALL: [0.03, 0.97]}
+
+    # Only buy if offer is better that what we have and it costs less than 10% more and random chance is in your favour
     if current_internet.kwargs["download_speed"] < offer_internet.kwargs["download_speed"]\
             and offer_internet.list_price/current_internet.list_price < 1.1\
-            and np.random.choice([True, False], 1, True, [0.03, 0.97]):
+            and np.random.choice([True, False], 1, True, conversion_per_channel[action.channel]):
         return Transaction(customer=customer,
                            channel=action.channel,
                            added=action.offer.products,
