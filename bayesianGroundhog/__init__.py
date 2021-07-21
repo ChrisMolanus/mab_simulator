@@ -23,7 +23,7 @@ class Arm:
         self.alpha += n_conversions
         self.beta += n_trials
 
-    def sample(self, size=None):
+    def sample(self, size=1):
         #return stats.beta(a=1+self.alpha, b=1+self.beta)
         return np.random.beta(1+self.alpha, 1+self.beta, size=size)
 
