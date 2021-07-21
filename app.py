@@ -349,7 +349,7 @@ def get_performance_plot(plot_dfs):
 row3_col1, row3_col2, row3_col3 = st.beta_columns((2, 1, 1))
 with row3_col1:
     st.header("Simulator")
-    runs_per_policies = st.slider(label="Threads per policy", min_value=1, max_value=4, value=1, step=1)
+    runs_per_policies = st.slider(label="Threads per policy", min_value=1, max_value=10, value=5, step=1)
     sequential_runs = st.slider(label="Sequential runs per thread", min_value=1, max_value=10, value=1, step=1)
     day_count = st.slider(label="Number of days to simulate", min_value=21, max_value=365, value=50, step=1)
 
