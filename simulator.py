@@ -43,7 +43,7 @@ def policy_sim(policy_class, all_customers: List[Customer], all_actions: List[Ac
             # So not today == action.start_date, that is later
             if action.start_date < today < action.end_date:
                 policy.add_arm(action, [1])
-            else:
+            elif action.start_date > today:
                 actions.append(action)
         served_action_propensities: Dict[int, ServedActionPropensity] = dict()
         action_timeout: Dict[datetime, dict[int, ServedActionPropensity]] = dict()
