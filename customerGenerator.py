@@ -9,7 +9,11 @@ import csv
 from policy import ProductType, Product, Customer, Address, Action, CustomerAction, Transaction
 
 
-def get_products():
+def get_products() -> Tuple[List[Product], List[float]]:
+    """
+    Reads the data/products.csv file and return Product objects and the current market size per product
+    :return: All products(well for now they are Offers) and teh proportion of the base that has the product
+    """
     products: List[Product] = list()
     product_market_size: List[float] = list()
     with open('data/products.csv', mode='r') as infile:
@@ -26,12 +30,22 @@ def get_products():
 
 
 def generate_portfolios(nr_of_customers) -> List[List[Product]]:
+    """
+    Generates fake portfolios
+    :param nr_of_customers: The number of portfolios to generate
+    :return: List[List[Product]]
+    """
     products, product_market_size = get_products()
 
     return [[p] for p in np.random.choice(products, nr_of_customers, p=product_market_size)]
 
 
 def generate_customers(nr_of_customers) -> List[Customer]:
+    """
+    Generates fake customers
+    :param nr_of_customers: The number of customers to generate
+    :return: List[Customer]
+    """
     portfolios = generate_portfolios(nr_of_customers)
     names = generate_names(nr_of_customers)
     customers: List[Customer] = list()
@@ -46,6 +60,11 @@ def generate_customers(nr_of_customers) -> List[Customer]:
 
 
 def generate_names(nr_of_customers) -> List[Dict[str, str]]:
+    """
+    Generates fake names based on common names used in the Netherlands
+    :param nr_of_customers: The number of names teo generate
+    :return: List[{"firstname": str, "lastname": str}]
+    """
     last_names: List[str] = list()
     n2007: List[int] = list()
     # Nederlandse Familienamen Top 10.000 http://www.naamkunde.net/?page_id=294
@@ -87,6 +106,13 @@ def generate_names(nr_of_customers) -> List[Dict[str, str]]:
 
 
 def what_would_a_customer_do(customer: Customer, action: Action, ts: datetime) -> CustomerAction:
+    """
+    An agent that assumes a rational customer and simulates the decision process of a customer to buy a new product
+    :param customer: The customer
+    :param action: The Action performed on the customer
+    :param ts: The timestamp it was performed
+    :return: None: Customer did nothing or rejected offer, A Transaction: Customer accepted offer
+    """
     for product in customer.portfolio:
         if product.product_type == ProductType.FIXED_INTERNET:
             current_internet = product
@@ -106,15 +132,3 @@ def what_would_a_customer_do(customer: Customer, action: Action, ts: datetime) -
                            removed=[current_internet],
                            ts=ts)
     return None
-
-
-if __name__ == "__main__":
-    nr_of_customers = 10000
-
-    #data/fn_10kw.xml
-
-    # Nederlandse Voornamen Top 10.000 http://www.naamkunde.net/?page_id=293
-    #data/voornamentop10000.xml
-
-
-
