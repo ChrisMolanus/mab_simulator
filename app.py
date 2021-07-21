@@ -12,7 +12,7 @@ from pandas import DataFrame
 import scipy.stats as stats
 
 import bayesianGroundhog
-import dashingRingtail
+import epsilonRingtail
 import randomCrayfish
 from actionGenerator import get_actions
 from customerGenerator import generate_customers, get_products
@@ -243,7 +243,7 @@ with bayesian_col2:
 
 def do_simulations(runs_per_policies, sequential_runs, customers, actions,
                    epsilon, resort_batch_size,initial_trials, initial_conversions, day_count):
-    policies = [randomCrayfish.RandomCrayfish, dashingRingtail.DashingRingtail, bayesianGroundhog.BayesianGroundhog]
+    policies = [randomCrayfish.RandomCrayfish, epsilonRingtail.EpsilonRingtail, bayesianGroundhog.BayesianGroundhog]
 
     processes = list()
     output_queue = Queue()

@@ -22,7 +22,7 @@ class Arm:
         self.get_conversion_rate() < other.get_conversion_rate()
 
 
-class DashingRingtail(Policy):
+class EpsilonRingtail(Policy):
     def __init__(self, epsilon: float, resort_batch_size: int, **kwargs):
         """
         Epsilon greedy

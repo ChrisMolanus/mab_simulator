@@ -8,7 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 import bayesianGroundhog
-import dashingRingtail
+import epsilonRingtail
 import randomCrayfish
 from actionGenerator import get_actions
 from customerGenerator import generate_customers, what_would_a_customer_do
@@ -143,7 +143,7 @@ def policy_sim(policy_class, all_customers: List[Customer], all_actions: List[Ac
 
 
 if __name__ == "__main__":
-    policies = [bayesianGroundhog.BayesianGroundhog, randomCrayfish.RandomCrayfish, dashingRingtail.DashingRingtail]
+    policies = [bayesianGroundhog.BayesianGroundhog, randomCrayfish.RandomCrayfish, epsilonRingtail.EpsilonRingtail]
     runs_per_policies = 2
     sequential_runs = 1
 
