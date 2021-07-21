@@ -242,7 +242,7 @@ with bayesian_col2:
 
 
 def do_simulations(runs_per_policies, sequential_runs, customers, actions,
-                   epsilon, resort_batch_size,initial_trials, initial_conversions):
+                   epsilon, resort_batch_size,initial_trials, initial_conversions, day_count):
     policies = [randomCrayfish.RandomCrayfish, dashingRingtail.DashingRingtail, bayesianGroundhog.BayesianGroundhog]
 
     processes = list()
@@ -251,7 +251,7 @@ def do_simulations(runs_per_policies, sequential_runs, customers, actions,
         for r in range(runs_per_policies):
             keywords = {'epsilon': epsilon, 'resort_batch_size': resort_batch_size, "initial_trials": initial_trials, "initial_conversions": initial_conversions}
             p = Process(target=policy_sim,
-                        args=(policy_class, customers, actions, 365, output_queue, r, sequential_runs),
+                        args=(policy_class, customers, actions, day_count, output_queue, r, sequential_runs),
                         kwargs=keywords)
             p.start()
             processes.append(p)
@@ -351,7 +351,7 @@ with row3_col1:
     st.header("Simulator")
     runs_per_policies = st.slider(label="Threads per policy", min_value=1, max_value=4, value=1, step=1)
     sequential_runs = st.slider(label="Sequential runs per thread", min_value=1, max_value=10, value=1, step=1)
-    st.subheader('Policy performance')
+    day_count = st.slider(label="Number of days to simulate", min_value=21, max_value=365, value=50, step=1)
 
 if __name__ == '__main__':
     freeze_support()
@@ -360,7 +360,7 @@ if __name__ == '__main__':
         run = st.checkbox("Run Simulator")
         if run:
             plot_dfs, xs, policy_labels, ys = do_simulations(runs_per_policies, sequential_runs, customers, actions,
-                                 epsilon, resort_batch_size, initial_trials, initial_wins)
+                                 epsilon, resort_batch_size, initial_trials, initial_wins, day_count)
             st.pyplot(get_performance_plot(plot_dfs))
     with row3_col3:
         if run:
