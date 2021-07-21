@@ -176,7 +176,7 @@ with epsilon_col2:
 bayesian_col1, bayesian_col2 = st.beta_columns(2)
 with bayesian_col1:
     st.header("Bayesian")
-    initial_trials: int = st.slider(label="Initial Trails", min_value=0, max_value=500, value=1, step=1)
+    initial_trials: int = st.slider(label="Initial Trails", min_value=0, max_value=500, value=99, step=1)
     initial_wins: int = st.slider(label="Initial Wins", min_value=0, max_value=500, value=1, step=1)
 
 with bayesian_col2:
