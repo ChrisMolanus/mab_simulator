@@ -235,7 +235,7 @@ if __name__ == "__main__":
         policy["std_u"] = policy["mean_k"] + (policy["std"] /1000)
         policy["std_l"] = policy["mean_k"] - (policy["std"] /1000)
 
-        ax.fill_between(policy["ts"], policy["std_l"], policy["std_u"])
+        ax.fill_between(policy["ts"], policy["std_l"], policy["std_u"], alpha=0.2)
         ax.plot(policy["ts"], policy["mean_k"], label=policy_name)
 
     ax.set(xlabel='time (days)', ylabel='Cumulative HLV (1000 Euros)',
