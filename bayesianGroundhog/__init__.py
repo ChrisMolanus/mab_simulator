@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Dict, List, Set
+from typing import Dict, List, Set, Optional
 
 import numpy as np
 from scipy import stats

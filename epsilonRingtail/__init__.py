@@ -100,7 +100,7 @@ class EpsilonRingtail(Policy):
         self.update_customer_products()
         self.last_updated = self.now_ts.date()
 
-    def get_next_best_action(self, customer: Customer, segment_ids: List[str]) -> ServedActionPropensity:
+    def get_next_best_action(self, customer: Customer, segment_ids: List[str]) -> Optional[ServedActionPropensity]:
         propensities: Dict[str, float] = dict()
         found_top = False
         explore_arms: List[Arm] = list()
