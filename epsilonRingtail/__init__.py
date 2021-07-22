@@ -25,7 +25,7 @@ class Arm:
         return self.number_of_conversions/self.number_of_impressions
 
     def __lt__(self, other):
-        self.get_conversion_rate() < other.get_conversion_rate()
+        return self.get_conversion_rate() < other.get_conversion_rate()
 
 
 class EpsilonRingtail(Policy):
