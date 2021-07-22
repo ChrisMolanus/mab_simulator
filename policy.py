@@ -22,7 +22,7 @@ class Product:
         :param list_price: The price as it would appear on a customer bill
         :param margin: The margin that is directly made on the sale of this product
         :param product_type: The type of product
-        :param start_date: The date when this prod could have been cold for the first time
+        :param start_date: The date when this prod could have been sold for the first time
         :param end_date: The date when this product could npo longer be sold
         """
         self.id = id
@@ -190,19 +190,6 @@ class ServedActionPropensity:
         self.customer = customer
         self.chosen_action = chosen_action
         self.action_propensities = action_propensities
-
-
-# class ServedAction:
-#     def __init__(self, customer: Customer, action: Action, ts: datetime):
-#         """
-#         The Event performed in the channel
-#         :param customer: The customer it wa performed on
-#         :param action: The action that was performed
-#         :param ts: Time the action was performed
-#         """
-#         self.customer = customer
-#         self.action = action
-#         self.ts = ts
 
 
 class CustomerAction:
