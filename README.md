@@ -20,7 +20,7 @@ The algorithm then chooses the action with teh maximum expected customer lifetim
 This is simply a reference policy that pick a random action.
 ![Drag Racing](RandomCrayfish.png)
 
-## Instalation
+# Instalation
 Clone the repository to a local directory
 
 Change the current working directory to in the folder where created when the repository was cloned
@@ -38,17 +38,18 @@ Install all the necessary packages
 pip install -r requierments.txt
 ```
 
-## Running the application
+# Running the application
 ```bash
 python simulator.py
 ```
 
-## Running the dashboard
+# Running the dashboard
 ```bash
 streamlit run app.py
 ```
+![Drag Racing](dashboard_screenshot.png)
 
-## Making your own Policy
+# Making your own Policy
 First create a new package folder in the root of the repository. 
 Try and give it a cool name, see https://pypi.org/project/coolname/ to see how to generate one.
 
