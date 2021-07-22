@@ -15,6 +15,7 @@ class Arm:
         self.action = action
         self.number_of_impressions = number_of_impressions
         self.number_of_conversions = number_of_conversions
+        self.sum_of_rewards = 1.0
         self.customer_products = list()
         for product in action.offer.products:
             self.customer_products.append(customer_product_from_product(product,
@@ -23,6 +24,9 @@ class Arm:
 
     def get_conversion_rate(self) -> float:
         return self.number_of_conversions/self.number_of_impressions
+
+    def get_expected_reward(self) -> float:
+        return self.sum_of_rewards/self.number_of_impressions
 
     def __lt__(self, other):
         return self.get_conversion_rate() < other.get_conversion_rate()
@@ -64,6 +68,7 @@ class EpsilonRingtail(Policy):
         # Check if action resulted in a conversion
         if reward > 0:
             self.action_arms[served_action_propensity.chosen_action.name].number_of_conversions += 1
+            self.action_arms[served_action_propensity.chosen_action.name].sum_of_rewards += reward
         self.update_batch_counter += 1
         if self.update_batch_counter > 50:
             self.ranked_arms.sort(reverse=True)
@@ -108,7 +113,7 @@ class EpsilonRingtail(Policy):
         for arm in self.ranked_arms:
             transaction = Transaction(customer=customer, channel=arm.action.channel,
                                       removed=customer.portfolio, added=arm.customer_products, ts=datetime.now())
-            delta_hlv = self.reward_calculator.calculate(customer, transaction)
+            delta_hlv = arm.get_expected_reward()
             delta_hlvs.append(delta_hlv)
             # look for action that can be applied to any one of these segments
             if len(self.action_segments[arm.action.name].intersection(set(segment_ids))) > 0 and delta_hlv > 0.0:
