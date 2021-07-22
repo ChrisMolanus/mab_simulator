@@ -65,6 +65,7 @@ class EpsilonRingtail(Policy):
 
     def add_customer_action(self, served_action_propensity: ServedActionPropensity, customer_action: CustomerAction,
                             reward: float):
+        # self.action_arms[served_action_propensity.chosen_action.name].number_of_impressions += 1
         # Check if action resulted in a conversion
         if reward > 0:
             self.action_arms[served_action_propensity.chosen_action.name].number_of_conversions += 1
