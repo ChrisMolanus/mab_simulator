@@ -1,3 +1,4 @@
+from datetime import timedelta, date
 from typing import Dict, List
 from itertools import chain
 
@@ -9,7 +10,7 @@ class RewardCalculator:
         self.hlv_calculator = HlvCalculator()
 
     def calculate(self, customer: Customer, transaction: Transaction) -> float:
-        hlv_before = self.hlv_calculator.get_hlv(customer)
+        hlv_before = self.hlv_calculator.get_hlv(customer, transaction.ts.date())
 
         # index products
         portfolio_dict: Dict[str, List[Product]] = dict()
@@ -36,7 +37,7 @@ class RewardCalculator:
                                  portfolio=list(chain(*portfolio_dict.values()))
                                  )
 
-        hlv_after = self.hlv_calculator.get_hlv(fake_customer)
+        hlv_after = self.hlv_calculator.get_hlv(fake_customer, transaction.ts.date())
 
         return hlv_after - hlv_before
 
@@ -44,8 +45,10 @@ class RewardCalculator:
 class HlvCalculator:
     hlv_horizon_years = 5
 
-    def get_hlv(self, customer: Customer) -> float:
+    def get_hlv(self, customer: Customer, date_of_transaction: date) -> float:
         margin = 0.0
         for product in customer.portfolio:
-            margin += product.get_margin() * self.hlv_horizon_years  # years
+            lifetime = max(0.5, (product.contract_start +
+                               timedelta(weeks=52*self.hlv_horizon_years)).year - date_of_transaction.year)
+            margin += product.get_margin() * lifetime
         return margin

@@ -1,8 +1,9 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from random import random
 from typing import Dict, List, Set, OrderedDict
 
-from policy import Policy, Action, ServedActionPropensity, CustomerAction, Customer, Transaction, Channel
+from policy import Policy, Action, ServedActionPropensity, CustomerAction, Customer, Transaction, Channel, \
+    customer_product_from_product
 
 import numpy as np
 
@@ -14,6 +15,11 @@ class Arm:
         self.action = action
         self.number_of_impressions = number_of_impressions
         self.number_of_conversions = number_of_conversions
+        self.customer_products = list()
+        for product in action.offer.products:
+            self.customer_products.append(customer_product_from_product(product,
+                                          datetime.today().date(),
+                                          datetime.today().date() + timedelta(weeks=52)))
 
     def get_conversion_rate(self) -> float:
         return self.number_of_conversions/self.number_of_impressions
@@ -35,6 +41,8 @@ class EpsilonRingtail(Policy):
         self.update_batch_counter = 0
 
         self.reward_calculator = RewardCalculator()
+        self.now_ts = datetime.now()
+        self.last_updated = datetime.now() - timedelta(days=1)
 
     def add_arm(self, action: Action, segment_ids: List[str]):
         arm = Arm(action)
@@ -42,6 +50,14 @@ class EpsilonRingtail(Policy):
             self.action_segments[action.name] = set(segment_ids)
             self.action_arms[action.name] = arm
             self.ranked_arms.append(arm)
+        self.update_customer_products()
+        self.last_updated = self.now_ts.date()
+
+    def update_customer_products(self):
+        for arm in self.action_arms.values():
+            for customer_products in arm.customer_products:
+                customer_products.contract_start = self.now_ts.date()
+                customer_products.contract_end = self.now_ts.date() + timedelta(weeks=52)
 
     def add_customer_action(self, served_action_propensity: ServedActionPropensity, customer_action: CustomerAction,
                             reward: float):
@@ -66,6 +82,7 @@ class EpsilonRingtail(Policy):
         pass
 
     def set_datetime(self, now_ts: datetime):
+        # Remove Arms/Actions that should no longer be used for NBAs
         arms_to_remove: List[Arm] = list()
         for arm in self.ranked_arms:
             if arm.action.end_date <= now_ts.date():
@@ -74,15 +91,23 @@ class EpsilonRingtail(Policy):
             del self.action_segments[arm.action.name]
             self.ranked_arms.remove(arm)
 
+        self.now_ts = now_ts
+        self.update_customer_products()
+        self.last_updated = self.now_ts.date()
+
     def get_next_best_action(self, customer: Customer, segment_ids: List[str]) -> ServedActionPropensity:
         propensities: Dict[str, float] = dict()
         found_top = False
         explore_arms: List[Arm] = list()
 
+        if self.last_updated < self.now_ts.date():
+            self.update_customer_products()
+            self.last_updated = self.now_ts.date()
+
         delta_hlvs = list()
         for arm in self.ranked_arms:
             transaction = Transaction(customer=customer, channel=arm.action.channel,
-                                      removed=customer.portfolio, added=arm.action.offer.products, ts=datetime.now())
+                                      removed=customer.portfolio, added=arm.customer_products, ts=datetime.now())
             delta_hlv = self.reward_calculator.calculate(customer, transaction)
             delta_hlvs.append(delta_hlv)
             # look for action that can be applied to any one of these segments

@@ -1,10 +1,11 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Dict, List, Set
 
 import numpy as np
 from scipy import stats
 
-from policy import Policy, Action, ServedActionPropensity, CustomerAction, Customer, Channel, Transaction
+from policy import Policy, Action, ServedActionPropensity, CustomerAction, Customer, Channel, Transaction, \
+    customer_product_from_product
 from rewardCalculator import RewardCalculator
 
 
@@ -18,6 +19,11 @@ class Arm:
         self.action = action
         self.alpha = initial_conversions
         self.beta = initial_trials
+        self.customer_products = list()
+        for product in action.offer.products:
+            self.customer_products.append(customer_product_from_product(product,
+                                          datetime.today().date(),
+                                          datetime.today().date() + timedelta(weeks=52)))
 
     def update_belief(self, n_trials: float = 99, n_conversions: float = 1):
         self.alpha += n_conversions
@@ -43,12 +49,22 @@ class BayesianGroundhog(Policy):
         self.initial_conversions = initial_conversions
 
         self.reward_calculator = RewardCalculator()
+        self.now_ts = datetime.now()
+        self.last_updated = datetime.now() - timedelta(days=1)
 
     def add_arm(self, action: Action, segment_ids: List[str]):
         arm = Arm(action, self.initial_trials, self.initial_conversions)
         if action.name not in self.action_arms:
             self.action_segments[action.name] = set(segment_ids)
             self.action_arms[action.name] = arm
+        self.update_customer_products()
+        self.last_updated = self.now_ts.date()
+
+    def update_customer_products(self):
+        for arm in self.action_arms.values():
+            for customer_products in arm.customer_products:
+                customer_products.contract_start = self.now_ts.date()
+                customer_products.contract_end = self.now_ts.date() + timedelta(weeks=52)
 
     def add_customer_action(self, served_action_propensity: ServedActionPropensity, customer_action: CustomerAction,
                             reward: float):
@@ -69,7 +85,18 @@ class BayesianGroundhog(Policy):
         pass
 
     def set_datetime(self, now_ts: datetime):
-        pass
+        # Remove Arms/Actions that should no longer ne suggested as NBAs
+        arms_to_remove: List[Arm] = list()
+        for action_name, arm in self.action_arms.items():
+            if arm.action.end_date <= now_ts.date():
+                arms_to_remove.append(arm)
+        for arm in arms_to_remove:
+            del self.action_segments[arm.action.name]
+            self.action_arms.remove(arm)
+
+        self.now_ts = now_ts
+        self.update_customer_products()
+        self.last_updated = self.now_ts.date()
 
     def get_next_best_action(self, customer: Customer, segment_ids: List[str]) -> ServedActionPropensity:
         propensities: Dict[str, float] = dict()
@@ -79,8 +106,13 @@ class BayesianGroundhog(Policy):
         top_expected_delta_hlv = 0
         top_arm: Arm = None
         for action_name, arm in self.action_arms.items():
+            if self.last_updated < self.now_ts.date():
+                self.update_customer_products()
+                self.last_updated = self.now_ts.date()
             transaction = Transaction(customer=customer, channel=arm.action.channel,
-                                      removed=customer.portfolio, added=arm.action.offer.products, ts=datetime.now())
+                                      removed=customer.portfolio,
+                                      added=arm.customer_products,
+                                      ts=datetime.now())
             delta_hlv = self.reward_calculator.calculate(customer, transaction)
             delta_hlvs.append(delta_hlv)
 

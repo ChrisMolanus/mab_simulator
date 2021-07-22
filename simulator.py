@@ -176,7 +176,7 @@ def get_performance_plot(plot_dfs, sorted_policies):
 
 if __name__ == "__main__":
     policies = [bayesianGroundhog.BayesianGroundhog, randomCrayfish.RandomCrayfish, epsilonRingtail.EpsilonRingtail]
-    runs_per_policies = 2
+    runs_per_policies = 5
     sequential_runs = 1
 
     processes = list()
@@ -187,7 +187,7 @@ if __name__ == "__main__":
         for r in range(runs_per_policies):
             keywords = {'epsilon': 0.8, 'resort_batch_size': 50, "initial_trials": 99, "initial_conversions": 1}
             p = Process(target=policy_sim,
-                        args=(policy_class, customers, actions, 20, output_queue, r, sequential_runs),
+                        args=(policy_class, customers, actions, 365, output_queue, r, sequential_runs),
                         kwargs=keywords)
             p.start()
             processes.append(p)

@@ -6,7 +6,8 @@ import numpy as np
 import xml.etree.ElementTree as ET
 import csv
 
-from policy import ProductType, Product, Customer, Address, Action, CustomerAction, Transaction, Channel
+from policy import ProductType, Product, Customer, Address, Action, CustomerAction, Transaction, Channel, \
+    CustomerProduct, customer_product_from_product
 
 
 def get_products() -> Tuple[List[Product], List[float]]:
@@ -29,7 +30,7 @@ def get_products() -> Tuple[List[Product], List[float]]:
     return products, product_market_size
 
 
-def generate_portfolios(nr_of_customers) -> List[List[Product]]:
+def generate_portfolios(nr_of_customers) -> List[List[CustomerProduct]]:
     """
     Generates fake portfolios
     :param nr_of_customers: The number of portfolios to generate
@@ -37,7 +38,14 @@ def generate_portfolios(nr_of_customers) -> List[List[Product]]:
     """
     products, product_market_size = get_products()
 
-    return [[p] for p in np.random.choice(products, nr_of_customers, p=product_market_size)]
+    portfolios: List[List[CustomerProduct]] = list()
+    p: Product
+    for p in np.random.choice(products, nr_of_customers, p=product_market_size):
+        contract_start = (p.start_date + timedelta(days=random.randint(0, 2190)))
+        contract_end = (contract_start + timedelta(weeks=52))
+        cp = customer_product_from_product(p, contract_start, contract_end)
+        portfolios.append([cp])
+    return portfolios
 
 
 def generate_customers(nr_of_customers) -> List[Customer]:
@@ -129,9 +137,14 @@ def what_would_a_customer_do(customer: Customer, action: Action, ts: datetime) -
     if current_internet.kwargs["download_speed"] < offer_internet.kwargs["download_speed"]\
             and offer_internet.list_price/current_internet.list_price < 1.1\
             and np.random.choice([True, False], 1, True, conversion_per_channel[action.channel]):
+        added: List[CustomerProduct] = list()
+        for product in action.offer.products:
+            added.append(customer_product_from_product(product,
+                         ts.date(),
+                         ts.date() + timedelta(weeks=52)))
         return Transaction(customer=customer,
                            channel=action.channel,
-                           added=action.offer.products,
+                           added=added,
                            removed=[current_internet],
                            ts=ts)
     return None

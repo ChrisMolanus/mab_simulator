@@ -76,6 +76,21 @@ class Discount(Product):
         return self.name
 
 
+class CustomerProduct(Product):
+    # TODO check if discount and compensate
+    def __init__(self, id: int, name: str, list_price: float, margin: float, product_type: ProductType,
+                 start_date: date, end_date: date, contract_start: date, contract_end: date, **kwargs):
+        super(CustomerProduct, self).__init__(id, name, list_price, margin, product_type, start_date, end_date, **kwargs)
+        self.contract_start = contract_start
+        self.contract_end = contract_end
+
+
+def customer_product_from_product(product: Product, contract_start: date, contract_end: date) -> CustomerProduct:
+    return CustomerProduct(id=product.id, name=product.name, list_price=product.list_price, margin=product._margin,
+                           product_type=product.product_type, start_date=product.start_date, end_date=product.end_date,
+                           contract_start=contract_start, contract_end=contract_end, **product.kwargs)
+
+
 class Address:
     def __init__(self, postcode: str, house_number: int, ext: str):
         """
@@ -93,7 +108,7 @@ class Address:
 
 
 class Customer:
-    def __init__(self, id: int, name: str, dob: date, billing_address: Address, portfolio: List[Product]):
+    def __init__(self, id: int, name: str, dob: date, billing_address: Address, portfolio: List[CustomerProduct]):
         """
         A contract holder or a potential contract holder
         :param id: The internal ID of this customer
@@ -208,7 +223,7 @@ class CustomerAction:
 
 
 class Transaction(CustomerAction):
-    def __init__(self, customer: Customer, channel: Channel, added: List[Product], removed: List[Product],
+    def __init__(self, customer: Customer, channel: Channel, added: List[CustomerProduct], removed: List[CustomerProduct],
                  ts: datetime):
         """
         An customer action that represents a customer requesting to change their portfolio
