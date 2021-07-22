@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from random import random
-from typing import Dict, List, Set, OrderedDict
+from typing import Dict, List, Set, OrderedDict, Optional
 
 from policy import Policy, Action, ServedActionPropensity, CustomerAction, Customer, Transaction, Channel, \
     customer_product_from_product
