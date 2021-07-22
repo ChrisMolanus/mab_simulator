@@ -19,19 +19,19 @@ class Arm:
         self.action = action
         self.alpha = initial_conversions
         self.beta = initial_trials
-        self.customer_products = list()
-        for product in action.offer.products:
-            self.customer_products.append(customer_product_from_product(product,
-                                          datetime.today().date(),
-                                          datetime.today().date() + timedelta(weeks=52)))
+        self.sum_of_rewards = 1.0
 
-    def update_belief(self, n_trials: float = 99, n_conversions: float = 1):
+    def update_belief(self, n_trials: float = 99, n_conversions: float = 1, reward: float = 0.0):
         self.alpha += n_conversions
         self.beta += n_trials
+        self.sum_of_rewards += reward
 
     def sample(self, size=1):
-        #return stats.beta(a=1+self.alpha, b=1+self.beta)
         return np.random.beta(1+self.alpha, 1+self.beta, size=size)
+
+    def get_expected_reward(self) -> float:
+        # sample * average reward
+        return self.sample()[0] * (self.sum_of_rewards/self.alpha)
 
     def __str__(self):
         return f'alpha={self.alpha}, beta={self.beta}'
@@ -50,15 +50,12 @@ class BayesianGroundhog(Policy):
 
         self.reward_calculator = RewardCalculator()
         self.now_ts = datetime.now()
-        self.last_updated = datetime.now() - timedelta(days=1)
 
     def add_arm(self, action: Action, segment_ids: List[str]):
         arm = Arm(action, self.initial_trials, self.initial_conversions)
         if action.name not in self.action_arms:
             self.action_segments[action.name] = set(segment_ids)
             self.action_arms[action.name] = arm
-        self.update_customer_products()
-        self.last_updated = self.now_ts.date()
 
     def update_customer_products(self):
         for arm in self.action_arms.values():
@@ -70,9 +67,9 @@ class BayesianGroundhog(Policy):
                             reward: float):
         # Check if action resulted in a conversion
         if reward > 0:
-            self.action_arms[served_action_propensity.chosen_action.name].update_belief(n_trials=1, n_conversions=1)
+            self.action_arms[served_action_propensity.chosen_action.name].update_belief(n_trials=1, n_conversions=1, reward=reward)
         else:
-            self.action_arms[served_action_propensity.chosen_action.name].update_belief(n_trials=1, n_conversions=0)
+            self.action_arms[served_action_propensity.chosen_action.name].update_belief(n_trials=1, n_conversions=0, reward=reward)
 
     def add_company_action(self, customer: Customer, action: Action, ts: datetime, cost: float):
         pass
@@ -95,31 +92,18 @@ class BayesianGroundhog(Policy):
             self.action_arms.remove(arm)
 
         self.now_ts = now_ts
-        self.update_customer_products()
-        self.last_updated = self.now_ts.date()
 
-    def get_next_best_action(self, customer: Customer, segment_ids: List[str]) -> ServedActionPropensity:
+    def get_next_best_action(self, customer: Customer, segment_ids: List[str]) -> Optional[ServedActionPropensity]:
         propensities: Dict[str, float] = dict()
 
-        delta_hlvs: List[float] = list()
         expected_delta_hlvs: Dict[float, Arm] = dict()
         top_expected_delta_hlv = 0
         top_arm: Arm = None
         for action_name, arm in self.action_arms.items():
-            if self.last_updated < self.now_ts.date():
-                self.update_customer_products()
-                self.last_updated = self.now_ts.date()
-            transaction = Transaction(customer=customer, channel=arm.action.channel,
-                                      removed=customer.portfolio,
-                                      added=arm.customer_products,
-                                      ts=datetime.now())
-            delta_hlv = self.reward_calculator.calculate(customer, transaction)
-            delta_hlvs.append(delta_hlv)
+            expected_delta_hlv = arm.get_expected_reward()
 
             # look for action that can be applied to any one of these segments
-            if len(self.action_segments[arm.action.name].intersection(set(segment_ids))) > 0 and delta_hlv > 0.0:
-                sample_conversion_rate = arm.sample(1)[0]
-                expected_delta_hlv = sample_conversion_rate*delta_hlv
+            if len(self.action_segments[arm.action.name].intersection(set(segment_ids))) > 0 and expected_delta_hlv > 0.0:
                 expected_delta_hlvs[expected_delta_hlv] = arm
                 if expected_delta_hlv > top_expected_delta_hlv:
                     top_expected_delta_hlv = expected_delta_hlv
