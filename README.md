@@ -53,7 +53,7 @@ streamlit run app.py
 First create a new package folder in the root of the repository. 
 Try and give it a cool name, see https://pypi.org/project/coolname/ to see how to generate one.
 
-Now copy the __init__.py file from the randomCrayfish folder into you new folder as a starting point.
+Now copy the \_\_init\_\_.py file from the randomCrayfish folder into you new folder as a starting point.
 This is where you can implement you policy.
 Take a look at the methods you can implement in the "Policy" class in the  "policy.py" file.
 
