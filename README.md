@@ -1,23 +1,23 @@
-#A marketing campaign management policy simulator.
+# A marketing campaign management policy simulator.
 This application simulates the implementation of candidate Policies in a Telecommunications company.
 The application allowes multiple policies to run in paralel over the same customer base to provide the likely cumulative customer lifetime value per policy
 
 ![Drag Racing](test.png)
 
-#Current policies
-##EpsilonRingtail
+# Current policies
+## EpsilonRingtail
 This is a policy based on the Epsilon greedy methode.
 but where instead of optimizing for minimal regret we optimize for maximum average customer lifetime value.
 
-##BayesianGroundhog
+## BayesianGroundhog
 This is a policy based on Thomson sampling from a Beta distribution of product convert rates.
 And the sampled conversion rate is then multiples by the average reward to get teh expected customer lifetime value of the action.
 The algorithm then chooses the action with teh maximum expected customer lifetime value.
 
-##RandomCrayfish
+## RandomCrayfish
 This is simply a reference policy that pick a random action.
 
-##Instalation
+## Instalation
 Clone the repository to a local directory
 
 Change the current working directory to in the folder where created when the repository was cloned
@@ -35,17 +35,17 @@ Install all the necessary packages
 pip install -r requierments.txt
 ```
 
-##Running the application
+## Running the application
 ```bash
 python simulator.py
 ```
 
-##Running the dashboard
+## Running the dashboard
 ```bash
 streamlit run app.py
 ```
 
-##Making your own Policy
+## Making your own Policy
 First create a new package folder in the root of the repository. 
 Try and give it a cool name, see https://pypi.org/project/coolname/ to see how to generate one.
 
