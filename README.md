@@ -7,15 +7,18 @@ The application allowes multiple policies to run in paralel over the same custom
 # Current policies
 ## EpsilonRingtail
 This is a policy based on the Epsilon greedy methode.
-but where instead of optimizing for minimal regret we optimize for maximum average customer lifetime value.
+But where instead of optimizing for minimal regret we optimize for maximum average customer lifetime value.
+![Drag Racing](EpsilonRingtail.png)
 
 ## BayesianGroundhog
 This is a policy based on Thomson sampling from a Beta distribution of product convert rates.
 And the sampled conversion rate is then multiples by the average reward to get teh expected customer lifetime value of the action.
 The algorithm then chooses the action with teh maximum expected customer lifetime value.
+![Drag Racing](BayesianGroundhog.png)
 
 ## RandomCrayfish
 This is simply a reference policy that pick a random action.
+![Drag Racing](RandomCrayfish.png)
 
 ## Instalation
 Clone the repository to a local directory
