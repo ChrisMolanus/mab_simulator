@@ -219,7 +219,7 @@ with bayesian_col2:
     for step in range(1, n + 1):
         # Define the prior based on current observations
         bandit_priors = [
-            stats.beta(a=1 + w, b=1 + t - w) for t, w in zip(trials, wins)]
+            stats.beta(a=1 + w, b=1 + t) for t, w in zip(trials, wins)]
         # plot prior
         if step in plots:
             plot(bandit_priors, step, next(axs))
