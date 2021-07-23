@@ -12,6 +12,12 @@ from rewardCalculator import RewardCalculator
 
 class Arm:
     def __init__(self, action: Action, number_of_impressions: float = 99.0, number_of_conversions: float = 1.0):
+        """
+        A Epsilon Greed arm
+        :param action: The action this arm represents
+        :param number_of_impressions: The initial number of impressions to start with
+        :param number_of_conversions: The initial number of conversions to start with
+        """
         self.action = action
         self.number_of_impressions = number_of_impressions
         self.number_of_conversions = number_of_conversions

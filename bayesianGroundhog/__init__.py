@@ -13,8 +13,8 @@ class Arm:
     def __init__(self, action: Action, initial_trials, initial_conversions):
         """The continuous probability distribution of the conversion rate of an Next Best Offer
         :param action: The action for which this arm represents the conversion rate
-        :param initial_trials:
-        :param initial_conversions:
+        :param initial_trials: The initial number of impressions to start with
+        :param initial_conversions: The initial number of conversions to start with
         """
         self.action = action
         self.alpha = initial_conversions
