@@ -61,3 +61,6 @@ Onces your ready to test you can add your new package(policy) the "policies" lis
 ```python
 if __name__ == "__main__":
 ```
+
+## Class diagram
+![Drag Racing](class_diagram.svg)
