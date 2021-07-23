@@ -1,8 +1,7 @@
 from datetime import datetime, timedelta
-from random import random
-from typing import Dict, List, Set, OrderedDict, Optional
+from typing import Dict, List, Set, Optional
 
-from policy import Policy, Action, ServedActionPropensity, CustomerAction, Customer, Transaction, Channel, \
+from policy import Policy, Action, ServedActionPropensity, CustomerAction, Customer, Channel, \
     customer_product_from_product
 
 import numpy as np

@@ -1,11 +1,9 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Dict, List, Set, Optional
 
 import numpy as np
-from scipy import stats
 
-from policy import Policy, Action, ServedActionPropensity, CustomerAction, Customer, Channel, Transaction, \
-    customer_product_from_product
+from policy import Policy, Action, ServedActionPropensity, CustomerAction, Customer, Channel
 from rewardCalculator import RewardCalculator
 
 
@@ -23,7 +21,7 @@ class Arm:
 
     def update_belief(self, n_trials: float = 99, n_conversions: float = 1, reward: float = 0.0):
         """
-        Upate the beta distribution with the new data
+        Update the beta distribution with the new data
         :param n_trials: The number of attempts made in this sample set
         :param n_conversions: The number of conversions made in this sample set
         :param reward: The sum of the reward see from the conversions in this sample set
@@ -73,12 +71,6 @@ class BayesianGroundhog(Policy):
             self.action_segments[action.name] = set(segment_ids)
             self.action_arms[action.name] = arm
 
-    def update_customer_products(self):
-        for arm in self.action_arms.values():
-            for customer_products in arm.customer_products:
-                customer_products.contract_start = self.now_ts.date()
-                customer_products.contract_end = self.now_ts.date() + timedelta(weeks=52)
-
     def add_customer_action(self, served_action_propensity: ServedActionPropensity, customer_action: CustomerAction,
                             reward: float):
         # Check if action resulted in a conversion
@@ -107,7 +99,7 @@ class BayesianGroundhog(Policy):
                 arms_to_remove.append(arm)
         for arm in arms_to_remove:
             del self.action_segments[arm.action.name]
-            self.action_arms.remove(arm)
+            del self.action_arms[arm.action.name]
 
         self.now_ts = now_ts
 
@@ -116,7 +108,7 @@ class BayesianGroundhog(Policy):
 
         expected_delta_hlvs: Dict[float, Arm] = dict()
         top_expected_delta_hlv = 0
-        top_arm: Arm = None
+        top_arm: Optional[Arm] = None
         for action_name, arm in self.action_arms.items():
             expected_delta_hlv = arm.get_expected_reward()
 
