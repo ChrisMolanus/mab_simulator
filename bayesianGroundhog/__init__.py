@@ -22,16 +22,32 @@ class Arm:
         self.sum_of_rewards = 1.0
 
     def update_belief(self, n_trials: float = 99, n_conversions: float = 1, reward: float = 0.0):
+        """
+        Upate the beta distribution with the new data
+        :param n_trials: The number of attempts made in this sample set
+        :param n_conversions: The number of conversions made in this sample set
+        :param reward: The sum of the reward see from the conversions in this sample set
+        """
         self.alpha += n_conversions
         self.beta += n_trials
         self.sum_of_rewards += reward
 
     def sample(self, size=1):
-        return np.random.beta(1+self.alpha, 1+self.beta, size=size)
+        """
+        Draw a sample from the distribution representing our belief in the conventions rate of this arm/action
+        :param size: The number of samples, Default is 1
+        :return: A sample conversion rate
+        """
+        return np.random.beta(1 + self.alpha, 1 + self.beta, size=size)
 
     def get_expected_reward(self) -> float:
+        """
+        Sample an expected reward based on a sample conversion rate and the current sum of rewards
+        sample_conversion * average_reward
+        :return: The sampled expected reward
+        """
         # sample * average reward
-        return self.sample()[0] * (self.sum_of_rewards/self.alpha)
+        return self.sample()[0] * (self.sum_of_rewards / self.alpha)
 
     def __str__(self):
         return f'alpha={self.alpha}, beta={self.beta}'
@@ -67,9 +83,11 @@ class BayesianGroundhog(Policy):
                             reward: float):
         # Check if action resulted in a conversion
         if reward > 0:
-            self.action_arms[served_action_propensity.chosen_action.name].update_belief(n_trials=1, n_conversions=1, reward=reward)
+            self.action_arms[served_action_propensity.chosen_action.name].update_belief(n_trials=1, n_conversions=1,
+                                                                                        reward=reward)
         else:
-            self.action_arms[served_action_propensity.chosen_action.name].update_belief(n_trials=1, n_conversions=0, reward=reward)
+            self.action_arms[served_action_propensity.chosen_action.name].update_belief(n_trials=1, n_conversions=0,
+                                                                                        reward=reward)
 
     def add_company_action(self, customer: Customer, action: Action, ts: datetime, cost: float):
         pass
@@ -103,12 +121,16 @@ class BayesianGroundhog(Policy):
             expected_delta_hlv = arm.get_expected_reward()
 
             # look for action that can be applied to any one of these segments
-            if len(self.action_segments[arm.action.name].intersection(set(segment_ids))) > 0 and expected_delta_hlv > 0.0:
+            if len(self.action_segments[arm.action.name].intersection(
+                    set(segment_ids))) > 0 and expected_delta_hlv > 0.0:
                 expected_delta_hlvs[expected_delta_hlv] = arm
                 if expected_delta_hlv > top_expected_delta_hlv:
                     top_expected_delta_hlv = expected_delta_hlv
                     top_arm = arm
-                # Hard to saw what this should be
+                # Hard to calculate what this should be
+                # TODO: use arm distributions in region covered by the arm with a tail in the highest conversion rate
+                # Use area under the curve of normalized distributions as the propensities that that arm
+                # could be the one that gave the winning conventions rate
                 propensities[arm.action.name] = 0.0
             else:
                 # This action could not be applied to this customer so the propensity is 0

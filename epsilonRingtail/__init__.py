@@ -19,14 +19,14 @@ class Arm:
         self.customer_products = list()
         for product in action.offer.products:
             self.customer_products.append(customer_product_from_product(product,
-                                          datetime.today().date(),
-                                          datetime.today().date() + timedelta(weeks=52)))
+                                                                        datetime.today().date(),
+                                                                        datetime.today().date() + timedelta(weeks=52)))
 
     def get_conversion_rate(self) -> float:
-        return self.number_of_conversions/self.number_of_impressions
+        return self.number_of_conversions / self.number_of_impressions
 
     def get_expected_reward(self) -> float:
-        return self.sum_of_rewards/self.number_of_impressions
+        return self.sum_of_rewards / self.number_of_impressions
 
     def __lt__(self, other):
         return self.get_conversion_rate() < other.get_conversion_rate()
@@ -112,12 +112,12 @@ class EpsilonRingtail(Policy):
 
         delta_hlvs = list()
         for arm in self.ranked_arms:
-            transaction = Transaction(customer=customer, channel=arm.action.channel,
-                                      removed=customer.portfolio, added=arm.customer_products, ts=datetime.now())
             delta_hlv = arm.get_expected_reward()
             delta_hlvs.append(delta_hlv)
-            # look for action that can be applied to any one of these segments
+            # Look for action that can be applied to any one of these segments
+            # The current top action may not be applicable
             if len(self.action_segments[arm.action.name].intersection(set(segment_ids))) > 0 and delta_hlv > 0.0:
+                # The top action that is applicable is the Exploit action
                 if not found_top:
                     exploit_arm = arm
                     propensities[arm.action.name] = self.epsilon
@@ -135,6 +135,7 @@ class EpsilonRingtail(Policy):
             for arm in explore_arms:
                 propensities[arm.action.name] = explore_prob
         else:
+            # None of the arms where applicable so non of them could have been chosen
             for arm in explore_arms:
                 propensities[arm.action.name] = 0.0
 
