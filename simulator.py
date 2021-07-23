@@ -13,7 +13,7 @@ import epsilonRingtail
 import randomCrayfish
 from actionGenerator import get_actions
 from customerGenerator import generate_customers, what_would_a_customer_do
-from policy import ServedActionPropensity, Policy, Customer, Address, Product, Channel, Action, Offer, Transaction
+from policy import ServedActionPropensity, Policy, Customer, Channel, Action, Transaction
 from rewardCalculator import RewardCalculator
 
 call_center_daily_quota = 200
@@ -21,10 +21,10 @@ cost_of_outbound_call = 8
 
 
 def policy_sim(policy_class, all_customers: List[Customer], all_actions: List[Action], day_count: int, output: Queue,
-               run_id:int, sequential_runs: int, **kwargs) -> DataFrame:
+               run_id: int, sequential_runs: int, **kwargs) -> DataFrame:
     print(policy_class.__name__ + str(run_id))
-    seed(7831*run_id)
-    np.random.seed(7831*run_id)
+    seed(7831 * run_id)
+    np.random.seed(7831 * run_id)
     reward_calculator = RewardCalculator()
 
     logs: List[List[Dict[str, Any]]] = list()
@@ -33,26 +33,34 @@ def policy_sim(policy_class, all_customers: List[Customer], all_actions: List[Ac
         # Only one sim should create a sample offer distribution plot
         chosen_action_log: Dict[datetime, Dict[str, int]] = dict()
 
+    # We can run multiple sequential runs since there is a time overhead to create new processes
     for s_run in range(sequential_runs):
         log: List[Dict[str, Any]] = list()
         customers: List[Customer] = all_customers.copy()
         policy: Policy = policy_class(**kwargs)
         today = datetime.today().date()
         actions: List[Action] = list()
+
+        # Since we are simulating implementing this in a company already has customers
+        # and has already ran campaigns in the past we initialize teh policy with the actions that are already active
         for action in all_actions:
             # So not today == action.start_date, that is later
             if action.start_date < today < action.end_date:
                 policy.add_arm(action, [1])
             elif action.start_date > today:
                 actions.append(action)
+
         served_action_propensities: Dict[int, ServedActionPropensity] = dict()
         action_timeout: Dict[datetime, dict[int, ServedActionPropensity]] = dict()
 
+        # Run a simulation of day_count number of days and track the cumulative_reward
         cumulative_reward = 0.0
         start_date = datetime.today()
         for today_datetime in (start_date + timedelta(n) for n in range(day_count)):
             today = today_datetime.date()
             action_timeout[today] = dict()
+
+            # Only one sim should create a sample offer distribution plot
             if run_id == 0:
                 chosen_action_log[today] = dict()
                 for action in all_actions:
@@ -60,6 +68,7 @@ def policy_sim(policy_class, all_customers: List[Customer], all_actions: List[Ac
             if run_id == 0:
                 chosen_action_log[today]["No Action"] = 0
 
+            # Since we are running a simulation we need to tell the policy it is the next day
             policy.set_datetime(today_datetime)
 
             # Add new actions that are available from today
@@ -77,15 +86,22 @@ def policy_sim(policy_class, all_customers: List[Customer], all_actions: List[Ac
             todays_email_served_action_propensities = list()
             while len(todays_served_action_propensities) < call_center_daily_quota and len(customers) > 0:
                 customer = customers.pop()
+                # Check if we ave already called them (Data quality)
                 if customer.id not in served_action_propensities:
                     served_action_propensity = policy.get_next_best_action(customer=customer, segment_ids=[1])
+                    # served_action_propensity can be None if there is no possible action due to constrains
                     if served_action_propensity is not None:
                         todays_served_action_propensities.append(served_action_propensity)
+                        # Find the right channel queue, needed since these are usually separate systems
+                        # But this is only here for illustration purposes, it has no effect in teh simulator
                         if served_action_propensity.chosen_action.channel == Channel.OUTBOUND_CALL:
                             todays_call_served_action_propensities.append(served_action_propensity)
                         elif served_action_propensity.chosen_action.channel == Channel.OUTBOUND_EMAIL:
                             todays_email_served_action_propensities.append(served_action_propensity)
+
                         served_action_propensities[customer.id] = served_action_propensity
+
+                        # Only one sim should create a sample offer distribution plot
                         if run_id == 0:
                             chosen_action_log[today][served_action_propensity.chosen_action.name] += 1
                     else:
@@ -101,27 +117,36 @@ def policy_sim(policy_class, all_customers: List[Customer], all_actions: List[Ac
                                                reward=0.0)
             del action_timeout[today]
 
-            # Actually perform the action
+            # Simulate Actually perform the actions
             call_counter = 0
             for served_action_propensity in todays_served_action_propensities:
+
+                # There is a hard limit of how many calls can be performed by a fixed number of agents
+                # So we have to simulate that limit
                 if call_counter >= call_center_daily_quota:
                     break
+
+                # Get a customer to call
                 customer = served_action_propensity.customer
                 cool_off_days = served_action_propensity.chosen_action.cool_off_days
-                deadline = today + timedelta(days=cool_off_days)
-                if deadline not in action_timeout:
-                    action_timeout[deadline] = dict()
-                action_timeout[deadline][customer.id] = served_action_propensity
+
+                # Simulate what the customer would have done
                 customer_action = what_would_a_customer_do(served_action_propensity.customer,
                                                            served_action_propensity.chosen_action,
                                                            today_datetime)
+
+                # Accounting now that the call has been made
                 call_counter += 1
                 policy.add_company_action(served_action_propensity,
                                           served_action_propensity.chosen_action,
                                           today,
                                           cost_of_outbound_call)
+                deadline = today + timedelta(days=cool_off_days)
+                if deadline not in action_timeout:
+                    action_timeout[deadline] = dict()
+                action_timeout[deadline][customer.id] = served_action_propensity
 
-                # See if we have inidiat reward
+                # See if we have immediate reward, the customer bought the product during the call
                 if isinstance(customer_action, Transaction):
                     reward = reward_calculator.calculate(served_action_propensity.customer, customer_action)
                     reward -= cost_of_outbound_call
@@ -129,15 +154,19 @@ def policy_sim(policy_class, all_customers: List[Customer], all_actions: List[Ac
                                                customer_action=customer_action,
                                                reward=reward)
 
+                    # Remove Timeout timer for this customer
                     deadline = today + timedelta(days=cool_off_days)
                     del action_timeout[deadline][customer.id]
 
                     cumulative_reward += reward
 
+                # TODO: implement th possibility that the customer buys the product at a later date within the cooloff
+
             log.append({"ts": today, "cumulative_reward": cumulative_reward})
         logs.append(log)
+
+    # Only the last chosen_action_log
     if run_id == 0:
-        # Only the last chosen_action_log
         output.put({"policy": policy_class.__name__, "logs": logs, "chosen_action_log": chosen_action_log})
     else:
         output.put({"policy": policy_class.__name__, "logs": logs})
@@ -219,8 +248,7 @@ if __name__ == "__main__":
         if p.is_alive():
             p.join()
 
-
-    # Plot timelines
+    # Plot policy timelines
     xs: Dict[str, List[datetime]] = dict()
     policy_labels: Dict[str, List[str]] = dict()
     ys: Dict[str, List[List[int]]] = dict()
@@ -244,7 +272,7 @@ if __name__ == "__main__":
         policy_labels[policy_name] = labels
         ys[policy_name] = y_per_action
 
-    # Plot performace
+    # Plot performance
     plot_dfs: Dict[str, DataFrame] = dict()
     last_mean_value: Dict[str, float] = dict()
     for policy, log in all_logs.items():
@@ -255,6 +283,7 @@ if __name__ == "__main__":
 
     for policy_name in policy_labels.keys():
         fig = get_timeline_plot(xs[policy_name], ys[policy_name], policy_name)
+        fig.savefig(f"{policy_name}.png")
         plt.show()
 
     ordered_policies_by_clv = sorted(last_mean_value, key=last_mean_value.get)
