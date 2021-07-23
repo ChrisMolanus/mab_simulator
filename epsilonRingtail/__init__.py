@@ -34,7 +34,7 @@ class Arm:
         return self.sum_of_rewards / self.number_of_impressions
 
     def __lt__(self, other):
-        return self.get_conversion_rate() < other.get_conversion_rate()
+        return self.get_expected_reward() < other.get_expected_reward()
 
 
 class EpsilonRingtail(Policy):
