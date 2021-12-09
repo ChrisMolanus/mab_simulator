@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import bayesianGroundhog
 import epsilonRingtail
 import randomCrayfish
+import segmentJunglefowl
 from actionGenerator import get_actions
 from customerGenerator import generate_customers, what_would_a_customer_do
 from policy import ServedActionPropensity, Policy, Customer, Channel, Action, Transaction
