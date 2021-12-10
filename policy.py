@@ -131,6 +131,24 @@ class Channel(Enum):
     NEWSLETTER = "Newsletter"
 
 
+def get_channel_action_cost(channel: Channel) -> float:
+    """
+    Get the cost associated with executing an action on this channel
+    :param channel: The marketing channel
+    :return: The cost associated with executing an action
+    """
+    if channel == Channel.OUTBOUND_EMAIL:
+        return 0.0
+    elif channel == Channel.OUTBOUND_CALL:
+        return 8.0
+    elif channel == Channel.DOOR_TO_DOOR:
+        return 14.50
+    elif channel == Channel.NEWSLETTER:
+        return 0.78
+    else:
+        return 0.0
+
+
 class Offer:
     def __init__(self, name: str, products: List[Product]):
         """
