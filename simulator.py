@@ -215,7 +215,8 @@ if __name__ == "__main__":
     output_queue = Queue()
     for policy_class in policies:
         for r in range(runs_per_policies):
-            keywords = {'epsilon': 0.8, 'resort_batch_size': 50, "initial_trials": 99, "initial_conversions": 1}
+            keywords = {'epsilon': 0.8, 'resort_batch_size': 50, "initial_trials": 99, "initial_conversions": 1,
+                        "current_base": customers}
             p = Process(target=policy_sim,
                         args=(policy_class, customers, actions, 365, output_queue, r, sequential_runs),
                         kwargs=keywords)
