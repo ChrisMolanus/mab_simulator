@@ -205,7 +205,8 @@ def get_performance_plot(plot_dfs, sorted_policies):
 
 
 if __name__ == "__main__":
-    policies = [bayesianGroundhog.BayesianGroundhog, randomCrayfish.RandomCrayfish, epsilonRingtail.EpsilonRingtail]
+    policies = [randomCrayfish.RandomCrayfish, segmentJunglefowl.SegmentJunglefowl, bayesianGroundhog.BayesianGroundhog,
+                epsilonRingtail.EpsilonRingtail]
     runs_per_policies = 5
     sequential_runs = 1
 

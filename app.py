@@ -14,6 +14,7 @@ import scipy.stats as stats
 import bayesianGroundhog
 import epsilonRingtail
 import randomCrayfish
+import segmentJunglefowl
 from actionGenerator import get_actions
 from customerGenerator import generate_customers, get_products
 from simulator import policy_sim, get_performance_plot, get_timeline_plot
@@ -241,13 +242,15 @@ with bayesian_col2:
 
 def do_simulations(runs_per_policies, sequential_runs, customers, actions,
                    epsilon, resort_batch_size,initial_trials, initial_conversions, day_count):
-    policies = [randomCrayfish.RandomCrayfish, epsilonRingtail.EpsilonRingtail, bayesianGroundhog.BayesianGroundhog]
+    policies = [randomCrayfish.RandomCrayfish, segmentJunglefowl.SegmentJunglefowl, epsilonRingtail.EpsilonRingtail,
+                bayesianGroundhog.BayesianGroundhog]
 
     processes = list()
     output_queue = Queue()
     for policy_class in policies:
         for r in range(runs_per_policies):
-            keywords = {'epsilon': epsilon, 'resort_batch_size': resort_batch_size, "initial_trials": initial_trials, "initial_conversions": initial_conversions}
+            keywords = {'epsilon': epsilon, 'resort_batch_size': resort_batch_size, "initial_trials": initial_trials,
+                        "initial_conversions": initial_conversions, "current_base": customers}
             p = Process(target=policy_sim,
                         args=(policy_class, customers, actions, day_count, output_queue, r, sequential_runs),
                         kwargs=keywords)
