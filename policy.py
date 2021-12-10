@@ -219,6 +219,26 @@ class Action:
         self.end_date = end_date
         self.cool_off_days = cool_off_days
 
+    def get_max_margin(self) -> float:
+        """
+        Get the margin we make if we sell all of the products in the offer.
+        This is different from the actual margin since it does not take the long term revenue
+        :return: The margin we make if we sell all of the products in the offer
+        """
+        margin = 0.0
+        for product in self.offer.products:
+            margin += product.get_margin()
+        return margin - get_channel_action_cost(self.channel)
+
+    def __eq__(self, other):
+        return self.name == other.name
+
+    def __str__(self):
+        return self.name
+
+    def __hash__(self):
+        return self.name.__hash__()
+
 
 class ServedActionPropensity:
     def __init__(self, customer: Customer, chosen_action: Action, action_propensities: Dict[str, float]):
