@@ -127,6 +127,8 @@ class Customer:
 class Channel(Enum):
     OUTBOUND_CALL = "Outbound call"
     OUTBOUND_EMAIL = "Send Email"
+    DOOR_TO_DOOR = "Door to door"
+    NEWSLETTER = "Newsletter"
 
 
 class Offer:
