@@ -48,6 +48,9 @@ class Product:
     def __str__(self):
         return self.name
 
+    def __hash__(self):
+        return self.name.__hash__()
+
 
 class Discount(Product):
     def __init__(self, id: int, name: str, list_price: float, margin: float, product_type: ProductType,
