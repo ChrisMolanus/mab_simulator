@@ -172,6 +172,9 @@ class Template:
         self.channel = channel
         self.icon = icon
 
+    def render(self, **kwargs):
+        return "Empty Generic Template object"
+
 
 class Content:
     def __init__(self, name: str, channel: Channel, template: Template, **kwargs):
@@ -190,6 +193,9 @@ class Content:
     def print_args(self):
         for key, value in self.kwargs.items():
             print(f"{key} {value}")
+
+    def render(self, **kwargs):
+        return self.template.render(**kwargs)
 
 
 class Action:
