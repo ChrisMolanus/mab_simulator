@@ -3,30 +3,37 @@ This application simulates the implementation of candidate Policies in a Telecom
 The application allows multiple policies to run in parallel over the same customer base to provide the likely 
 cumulative delta customer lifetime value per policy
 
-![Drag Racing](test.png)
+![Policy revenue timeline](test.png)
 
 # Current policies
 The current policies implemented are examples of popular algorithms applied to Multi-Arms Bandit problems. 
 This is my no means an exhaustive list, and the implemented policies are not the standard methode you would find on [Wikipedia](https://en.wikipedia.org/wiki/Multi-armed_bandit). 
 Typical implementations you can find online focus on optimizing conversion rate. 
 The implementations here focus on optimizing Delta Customer Lifetime Value
+
+##SegmentJunglefowl
+This is an implimention that simulates the standard Marketing Gold Silver Bronze segmentation.
+It is intded to be seen as refrence for how a marketing department might work if the customer segments and actions where mapped by hand.
+
+![SegmentJunglefowl timeline](SegmentJunglefowl.png)
+
 ## EpsilonRingtail
 This is a policy based on the Epsilon greedy methode.
 This implementation optimize for maximum average customer lifetime value instead of minimizing regret.
 
-![Drag Racing](EpsilonRingtail.png)
+![EpsilonRingtail timeline](EpsilonRingtail.png)
 
 ## BayesianGroundhog
 This is a policy based on Thomson sampling from a Beta distribution of product convert rates.
 And the sampled conversion rate is then multiples by the average reward to get the expected customer lifetime value of the action.
 The algorithm then chooses the action with the maximum expected customer lifetime value.
 
-![Drag Racing](BayesianGroundhog.png)
+![BayesianGroundhog timeline](BayesianGroundhog.png)
 
 ## RandomCrayfish
 This is simply a reference policy that pick a random action.
 
-![Drag Racing](RandomCrayfish.png)
+![RandomCrayfish timeline](RandomCrayfish.png)
 
 # Installation
 Clone the repository to a local directory
