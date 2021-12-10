@@ -67,7 +67,7 @@ class Discount(Product):
         """
         super(Discount, self).__init__(id, name, list_price, margin, product_type, start_date, end_date, **kwargs)
 
-    def get_margin(self, base_product: Product) -> float:
+    def get_margin(self, base_product: Product = None) -> float:
         """
         Calculate to annual margin of this product
         :param base_product: The product of wich this product is a modifierof, None if this is a L0 product
@@ -272,7 +272,8 @@ class CustomerAction:
 
 
 class Transaction(CustomerAction):
-    def __init__(self, customer: Customer, channel: Channel, added: List[CustomerProduct], removed: List[CustomerProduct],
+    def __init__(self, customer: Customer, channel: Channel, added: List[CustomerProduct],
+                 removed: List[CustomerProduct],
                  ts: datetime):
         """
         An customer action that represents a customer requesting to change their portfolio
@@ -311,7 +312,8 @@ class Policy:
                             reward: float):
         """
         Updates the policy to inform it that a customer has taken an action
-        :param served_action_propensity: The served_action_propensity(NBA) that we are assuming lead to the customer action
+        :param served_action_propensity: The served_action_propensity(NBA)
+        that we are assuming lead to the customer action
         :param customer_action: The action the customer toke
         :param reward: The monitory value of the customer taking the action
         """
