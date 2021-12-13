@@ -62,7 +62,7 @@ python simulator.py
 ```bash
 streamlit run app.py
 ```
-![Drag Racing](dashboard_screenshot.png)
+![Drag Racing](images/dashboard_screenshot.png)
 
 # Making your own Policy
 First create a new package folder in the root of the repository. 
