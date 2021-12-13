@@ -3,7 +3,7 @@ This application simulates the implementation of candidate Policies in a Telecom
 The application allows multiple policies to run in parallel over the same customer base to provide the likely 
 cumulative delta customer lifetime value per policy
 
-![Policy revenue timeline](test.png)
+![Policy revenue timeline](images/test.png)
 
 # Current policies
 The current policies implemented are examples of popular algorithms applied to Multi-Arms Bandit problems. 
@@ -15,25 +15,25 @@ The implementations here focus on optimizing Delta Customer Lifetime Value
 This is an implimention that simulates the standard Marketing Gold Silver Bronze segmentation.
 It is intded to be seen as refrence for how a marketing department might work if the customer segments and actions where mapped by hand.
 
-![SegmentJunglefowl timeline](SegmentJunglefowl.png)
+![SegmentJunglefowl timeline](images/SegmentJunglefowl.png)
 
 ## EpsilonRingtail
 This is a policy based on the Epsilon greedy methode.
 This implementation optimize for maximum average customer lifetime value instead of minimizing regret.
 
-![EpsilonRingtail timeline](EpsilonRingtail.png)
+![EpsilonRingtail timeline](images/EpsilonRingtail.png)
 
 ## BayesianGroundhog
 This is a policy based on Thomson sampling from a Beta distribution of product convert rates.
 And the sampled conversion rate is then multiples by the average reward to get the expected customer lifetime value of the action.
 The algorithm then chooses the action with the maximum expected customer lifetime value.
 
-![BayesianGroundhog timeline](BayesianGroundhog.png)
+![BayesianGroundhog timeline](images/BayesianGroundhog.png)
 
 ## RandomCrayfish
 This is simply a reference policy that pick a random action.
 
-![RandomCrayfish timeline](RandomCrayfish.png)
+![RandomCrayfish timeline](images/RandomCrayfish.png)
 
 # Installation
 Clone the repository to a local directory
@@ -79,4 +79,4 @@ if __name__ == "__main__":
 ```
 
 ## Class diagram
-![Drag Racing](class_diagram.svg)
+![Drag Racing](images/class_diagram.svg)
