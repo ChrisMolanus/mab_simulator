@@ -4,12 +4,8 @@ from typing import Dict, List, Set, Optional, Tuple
 import numpy as np
 from numpy import random
 
-from customerGenerator import get_products
 from policy import Policy, Action, ServedActionPropensity, CustomerAction, Customer, Channel, Product
-from rewardCalculator import HlvCalculator
 from segmentJunglefowl.marketingSegment import GoldSilverBronze, GoldSilverBronzeSegment
-
-
 
 
 class SegmentJunglefowl(Policy):
@@ -36,28 +32,30 @@ class SegmentJunglefowl(Policy):
 
         self.segment_actions: Dict[str, List[Action]] = dict()
         self.current_base = current_base
-        self.all_segment_actions: Dict[int, Set[Action]] = dict()
+        self.all_segment_actions: Dict[str, Set[Action]] = dict()
         self.segmentor = GoldSilverBronze(self.last_updated, self.current_base)
-        self.segment_actions: Dict[GoldSilverBronzeSegment, Dict[int, Set[Action]]] = {
+        self.segment_actions: Dict[GoldSilverBronzeSegment, Dict[str, Set[Action]]] = {
             GoldSilverBronzeSegment.Gold: dict(),
             GoldSilverBronzeSegment.Silver: dict(),
             GoldSilverBronzeSegment.Bronze: dict(),
         }
         self.actions: List[Action] = list()
+        self.silver_product_threshold: float = 0.0
+        self.gold_product_threshold: float = 0.0
 
     def add_arm(self, action: Action, segment_ids: List[str]):
         self.actions.append(action)
 
         for segment_id in segment_ids:
             if segment_id not in self.all_segment_actions:
-                self.all_segment_actions[segment_id] = list()
-            self.all_segment_actions[segment_id].append(action)
+                self.all_segment_actions[segment_id] = set()
+            self.all_segment_actions[segment_id].add(action)
 
         self.rebalance_product_segments()
 
     def rebalance_product_segments(self):
         # Re-balance product segmentation
-        margins: Dict[float, Set[Tuple[int, Action]]] = dict()
+        margins: Dict[float, Set[Tuple[str, Action]]] = dict()
         for segment_id, actions in self.all_segment_actions.items():
             for action_1 in actions:
                 margin = action_1.get_max_margin()
@@ -69,7 +67,7 @@ class SegmentJunglefowl(Policy):
 
         self.silver_product_threshold = triple[0]
         self.gold_product_threshold = triple[1]
-        self.segment_actions: Dict[GoldSilverBronzeSegment, Dict[int, Set[Action]]] = {
+        self.segment_actions: Dict[GoldSilverBronzeSegment, Dict[str, Set[Action]]] = {
             GoldSilverBronzeSegment.Gold: dict(),
             GoldSilverBronzeSegment.Silver: dict(),
             GoldSilverBronzeSegment.Bronze: dict(),
@@ -104,7 +102,7 @@ class SegmentJunglefowl(Policy):
         action_removed = False
         for our_segment_id, segmented_actions in self.segment_actions.items():
             for segment_id, segment_actions in segmented_actions.items():
-                actions_to_remove: List[Action] = list()
+                actions_to_remove: Set[Action] = set()
                 for action in segment_actions:
                     if action.end_date <= now_ts.date():
                         actions_to_remove.add(action)
@@ -142,7 +140,3 @@ class SegmentJunglefowl(Policy):
                                           action_propensities=propensities)
         else:
             return None
-
-
-
-
