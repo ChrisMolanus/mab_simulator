@@ -70,7 +70,7 @@ class Discount(Product):
     def get_margin(self, base_product: Product = None) -> float:
         """
         Calculate to annual margin of this product
-        :param base_product: The product of wich this product is a modifierof, None if this is a L0 product
+        :param base_product: The product of which this product is a modifier of, None if this is a L0 product
         :return: The Euro annual margin
         """
         return base_product.get_margin() + self._margin
