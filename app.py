@@ -23,7 +23,7 @@ st.set_page_config(layout="wide")
 
 matplotlib.use("agg")
 
-row1_col1, row1_col2 = st.beta_columns(2)
+row1_col1, row1_col2 = st.columns(2)
 with row1_col1:
     st.markdown("This is a Marketing Policy simulator that allows developers to test different Marketing policies.")
 
@@ -34,7 +34,7 @@ customers = generate_customers(1)
 actions = get_actions()
 products, product_market_size = get_products()
 
-cust_col1, cust_col2, cust_col3 = st.beta_columns((2, 1, 1))
+cust_col1, cust_col2, cust_col3 = st.columns((2, 1, 1))
 with cust_col1:
     st.header("Customers")
     nr_of_customers: float = st.slider(label="Base Size", min_value=10000, max_value=800000, value=100000, step=10000)
@@ -93,7 +93,7 @@ with cust_col2:
 st.write("##")
 
 
-products_col1, products_col2, products_col3 = st.beta_columns((2, 1, 1))
+products_col1, products_col2, products_col3 = st.columns((2, 1, 1))
 with products_col1:
     st.header("Products")
     arpu: int = st.slider(label="ARPU €", min_value=100, max_value=3000, value=2100, step=100)
@@ -153,7 +153,7 @@ with products_col2:
 st.write("##")
 st.write("##")
 
-epsilon_col1, epsilon_col2, epsilon_col3 = st.beta_columns((2,1,1))
+epsilon_col1, epsilon_col2, epsilon_col3 = st.columns((2, 1, 1))
 with epsilon_col1:
     st.header("Epsilon Greedy")
     epsilon: float = st.slider(label="Epsilon", min_value=0.1, max_value=0.9, value=0.8, step=0.1)
@@ -172,7 +172,7 @@ with epsilon_col2:
     ax.legend()
     st.pyplot(fig)
 
-bayesian_col1, bayesian_col2 = st.beta_columns(2)
+bayesian_col1, bayesian_col2 = st.columns(2)
 with bayesian_col1:
     st.header("Bayesian")
     initial_trials: int = st.slider(label="Initial Trails", min_value=0, max_value=500, value=99, step=1)
@@ -322,7 +322,7 @@ def do_simulations(runs_per_policies, sequential_runs, customers, actions,
     return plot_dfs, xs, policy_labels, ys, last_mean_value
 
 
-row3_col1, row3_col2, row3_col3 = st.beta_columns((2, 1, 1))
+row3_col1, row3_col2, row3_col3 = st.columns((2, 1, 1))
 with row3_col1:
     st.header("Simulator")
     runs_per_policies = st.slider(label="Threads per policy", min_value=1, max_value=10, value=5, step=1)
