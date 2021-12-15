@@ -7,6 +7,7 @@ from multiprocessing import Process, Queue
 from pandas import DataFrame
 import numpy as np
 import matplotlib.pyplot as plt
+import yaml
 
 import bayesianGroundhog
 import epsilonRingtail
@@ -207,8 +208,8 @@ def get_performance_plot(plot_dfs, sorted_policies):
 if __name__ == "__main__":
     policies = [randomCrayfish.RandomCrayfish, segmentJunglefowl.SegmentJunglefowl, bayesianGroundhog.BayesianGroundhog,
                 epsilonRingtail.EpsilonRingtail]
-    runs_per_policies = 5
-    sequential_runs = 1
+    runs_per_policies = 1
+    sequential_runs = 2
 
     processes = list()
     customers = generate_customers(100000)
@@ -250,6 +251,11 @@ if __name__ == "__main__":
     for p in processes:
         if p.is_alive():
             p.join()
+
+    for policy_name, log in all_logs.items():
+        with open("output/" + policy_name + ".yaml", "w") as f:
+            f.write(yaml.safe_dump(log))
+
 
     # Plot policy timelines
     xs: Dict[str, List[datetime]] = dict()
