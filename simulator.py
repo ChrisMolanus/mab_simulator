@@ -8,6 +8,7 @@ from pandas import DataFrame
 import numpy as np
 import matplotlib.pyplot as plt
 import yaml
+import os
 
 import bayesianGroundhog
 import epsilonRingtail
@@ -252,8 +253,11 @@ if __name__ == "__main__":
         if p.is_alive():
             p.join()
 
+    output_dir = "output"
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
     for policy_name, log in all_logs.items():
-        with open("output/" + policy_name + ".yaml", "w") as f:
+        with open(os.path.join(output_dir, policy_name + ".yaml"), "w") as f:
             f.write(yaml.safe_dump(log))
 
 
