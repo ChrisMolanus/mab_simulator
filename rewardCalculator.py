@@ -43,12 +43,11 @@ class RewardCalculator:
 
 
 class HlvCalculator:
-    hlv_horizon_years = 5
 
-    def get_hlv(self, customer: Customer, date_of_transaction: date) -> float:
+    def get_hlv(self, customer: Customer, date_of_transaction: date, hlv_horizon_years: int = 5) -> float:
         margin = 0.0
         for product in customer.portfolio:
             lifetime = max(0.5, (product.contract_start +
-                               timedelta(weeks=52*self.hlv_horizon_years)).year - date_of_transaction.year)
+                               timedelta(weeks=52*hlv_horizon_years)).year - date_of_transaction.year)
             margin += product.get_margin() * lifetime
         return margin
