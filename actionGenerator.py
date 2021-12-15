@@ -7,6 +7,9 @@ from policy import Product, Action, Channel, Offer, Content, Template, ProductTy
 
 
 class EmailTemplate1(Template):
+    def __init__(self, name: str, channel: Channel, icon: str):
+        super().__init__(name, channel, icon)
+
     def render(self, subjectline: str, product: str,  **kwargs) -> str:
         return f"""Subject line: {subjectline}
         Body: Buy this awesome {product}
@@ -17,6 +20,9 @@ class EmailTemplate1(Template):
 
 
 class EmailTemplate2(Template):
+    def __init__(self, name: str, channel: Channel, icon: str):
+        super().__init__(name, channel, icon)
+
     def render(self, subjectline: str, product: str,  **kwargs) -> str:
         return f"""Subject line: {subjectline}
         Body: For a limited time you can buy a {product}
@@ -27,6 +33,9 @@ class EmailTemplate2(Template):
 
 
 class AdviceTemplate1(Template):
+    def __init__(self, name: str, channel: Channel, icon: str):
+        super().__init__(name, channel, icon)
+
     def render(self, product: str, **kwargs):
         return f"""Offer customer {product}"""
 
@@ -35,6 +44,9 @@ class AdviceTemplate1(Template):
 
 
 class AdviceTemplate2(Template):
+    def __init__(self, name: str, channel: Channel, icon: str):
+        super().__init__(name, channel, icon)
+
     def render(self, product: str, **kwargs):
         return f"""Because they have been our customer for more that two years offer them {product}"""
 
