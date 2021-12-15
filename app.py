@@ -1,5 +1,5 @@
-from datetime import datetime
-from multiprocessing import Queue, Process, freeze_support
+from datetime import datetime, date
+from multiprocessing import Queue, Process, freeze_support, Pool
 from typing import Dict, List
 
 import numpy as np
@@ -7,7 +7,7 @@ import pandas as pd
 import streamlit as st
 import matplotlib
 import matplotlib.pyplot as plt
-from matplotlib import ticker
+from matplotlib import ticker, patches
 from pandas import DataFrame
 import scipy.stats as stats
 
@@ -17,6 +17,7 @@ import randomCrayfish
 import segmentJunglefowl
 from actionGenerator import get_actions
 from customerGenerator import generate_customers, get_products
+from rewardCalculator import HlvCalculator
 from simulator import policy_sim, get_performance_plot, get_timeline_plot
 
 st.set_page_config(layout="wide")
@@ -153,6 +154,35 @@ with products_col2:
 st.write("##")
 st.write("##")
 
+segment_col1, segment_col2,segment_col3 = st.columns((2, 1, 1))
+with segment_col1:
+    st.header("Gold Silver Bronze segments")
+    gold_threshold: float = st.slider(label="Gold Segment", min_value=0.0, max_value=8000.0, value=5600.0, step=200.0)
+    silver_threshold: float = st.slider(label="Silver Segment", min_value=0.0, max_value=8000.0, value=2800.0, step=200.0)
+
+with segment_col2:
+    hlv_calculator = HlvCalculator()
+    today = date.today()
+    margins = list()
+    for customer in customers:
+        margin = hlv_calculator.get_hlv(customer, today)
+        margins.append(hlv_calculator.get_hlv(customer, today, 20))
+    fig, ax = plt.subplots()
+    ax.hist(margins, bins=20)
+
+    gold_pathch = patches.Rectangle((gold_threshold, 0), (max(margins) - gold_threshold), 25000, angle=0.0, alpha=0.3, ec="gray", fc="CornflowerBlue")
+    ax.add_patch(gold_pathch)
+
+    silver_pathch = patches.Rectangle((silver_threshold, 0), (gold_threshold - silver_threshold), 25000, angle=0.0, alpha=0.3, ec="gray", fc="red")
+    ax.add_patch(silver_pathch)
+
+    bronze_pathch = patches.Rectangle((0, 0), silver_threshold, 25000, angle=0.0, alpha=0.3, ec="gray", fc="green")
+    ax.add_patch(bronze_pathch)
+
+    ax.set_ylabel('Number of customers')
+    ax.legend(["Gold", "Silver", "Bronze"])
+    st.pyplot(fig)
+
 epsilon_col1, epsilon_col2, epsilon_col3 = st.columns((2, 1, 1))
 with epsilon_col1:
     st.header("Epsilon Greedy")
@@ -241,7 +271,8 @@ with bayesian_col2:
 
 
 def do_simulations(runs_per_policies, sequential_runs, customers, actions,
-                   epsilon, resort_batch_size,initial_trials, initial_conversions, day_count):
+                   epsilon, resort_batch_size,initial_trials, initial_conversions, day_count, gold_threshold,
+                   silver_threshold):
     policies = [randomCrayfish.RandomCrayfish, segmentJunglefowl.SegmentJunglefowl, epsilonRingtail.EpsilonRingtail,
                 bayesianGroundhog.BayesianGroundhog]
 
@@ -250,12 +281,15 @@ def do_simulations(runs_per_policies, sequential_runs, customers, actions,
     for policy_class in policies:
         for r in range(runs_per_policies):
             keywords = {'epsilon': epsilon, 'resort_batch_size': resort_batch_size, "initial_trials": initial_trials,
-                        "initial_conversions": initial_conversions, "current_base": customers}
+                        "initial_conversions": initial_conversions, "current_base": customers,
+                        "gold_threshold": gold_threshold, "silver_threshold": silver_threshold}
             p = Process(target=policy_sim,
                         args=(policy_class, customers, actions, day_count, output_queue, r, sequential_runs),
                         kwargs=keywords)
-            p.start()
             processes.append(p)
+
+    for p in processes:
+        p.start()
 
     all_logs: Dict[str, Dict[datetime, List[float]]] = dict()
     plot_dict: Dict[str, List[Dict[datetime, dict]]] = dict()
@@ -331,12 +365,20 @@ with row3_col1:
 
 if __name__ == '__main__':
     freeze_support()
+    if gold_threshold == 0 or silver_threshold == gold_threshold:
+        gold_t = None
+        silver_t = None
+    else:
+        gold_t = gold_threshold
+        silver_t = silver_threshold
 
     with row3_col2:
         run = st.checkbox("Run Simulator")
         if run:
-            plot_dfs, xs, policy_labels, ys, last_mean_value = do_simulations(runs_per_policies, sequential_runs, customers, actions,
-                                 epsilon, resort_batch_size, initial_trials, initial_wins, day_count)
+            plot_dfs, xs, policy_labels, ys, last_mean_value = do_simulations(runs_per_policies, sequential_runs,
+                                                                              customers, actions, epsilon,
+                                                                              resort_batch_size, initial_trials,
+                                                                              initial_wins, day_count, gold_t, silver_t)
             ordered_policies_by_clv = sorted(last_mean_value, key=last_mean_value.get)
             ordered_policies_by_clv.reverse()
             st.pyplot(get_performance_plot(plot_dfs, ordered_policies_by_clv))
