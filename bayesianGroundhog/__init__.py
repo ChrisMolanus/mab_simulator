@@ -52,6 +52,8 @@ class Arm:
 
 
 class BayesianGroundhog(Policy):
+    icon = "https://cdn-icons-png.flaticon.com/512/185/185716.png"
+
     # https://peterroelants.github.io/posts/multi-armed-bandit-implementation/
     def __init__(self, initial_trials: float = 99, initial_conversions: int = 1, **kwargs):
         """

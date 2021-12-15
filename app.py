@@ -35,9 +35,15 @@ customers = generate_customers(1)
 actions = get_actions()
 products, product_market_size = get_products()
 
+st.header("Customers")
+st.write("""Customer are generated on every run using distributions of common first and last names of the population 
+of the Netherlands. 
+The date of births of the customers are generated using the age density of telecom service customers.
+The products are randomly assigned to customer portfolios with a weighed distribution that reflects a telecom company 
+with a base that mostly has portfolios with older products and only some with newer products.""")
 cust_col1, cust_col2, cust_col3 = st.columns((2, 1, 1))
 with cust_col1:
-    st.header("Customers")
+
     nr_of_customers: float = st.slider(label="Base Size", min_value=10000, max_value=800000, value=100000, step=10000)
     #resort_batch_size: int = st.slider(label="Batch size", min_value=1, max_value=201, value=51, step=10)
 
@@ -93,18 +99,26 @@ with cust_col2:
 
 st.write("##")
 
-
+st.header("Products")
+st.write("""This simulator only considered Fixed internet services to allows the simulator to finish fast.
+The products are based in a Dutch Telco operator Ziggo but are fake products. 
+The yearly margins on the products are reasonable for a Dutch Telco but are not the actual margins of Ziggo.
+Adjusting the Average Price per Unit sold (ARPU) changes the list price of the product 
+in proportion the original list price. Since the costs can not change this also changes the margin. 
+Increasing the Marketing Budget alowes for more costly actions like 
+better graphics which increase campaigns effectiveness,
+or make outbound calls which require most call center agents.""")
 products_col1, products_col2, products_col3 = st.columns((2, 1, 1))
 with products_col1:
-    st.header("Products")
+
     arpu: int = st.slider(label="ARPU €", min_value=100, max_value=3000, value=2100, step=100)
     marketing_budget: int = st.slider(label="Marketing Budget (Million €)", min_value=18, max_value=50, value=25, step=1)
 
     prod = list()
     for p in products:
-        prod.append({"name":p.name, "list_price":p.list_price + (arpu - 2100), "margin":p._margin + (arpu - 2100), "start_date":p.start_date,
-                     "end_date": p.end_date, "download_speed":p.kwargs["download_speed"],
-                     "upload_speed":p.kwargs["upload_speed"]})
+        prod.append({"name": p.name, "list_price": p.list_price + (arpu - 2100), "margin": p._margin + (arpu - 2100),
+                     "start_date": p.start_date, "end_date": p.end_date, "download_speed": p.kwargs["download_speed"],
+                     "upload_speed": p.kwargs["upload_speed"]})
     prod_df = pd.DataFrame(prod)
     prod_df
 
@@ -154,9 +168,16 @@ with products_col2:
 st.write("##")
 st.write("##")
 
-segment_col1, segment_col2,segment_col3 = st.columns((2, 1, 1))
-with segment_col1:
+segment_h_col1, segment_h_col2, segment_h_col3 = st.columns((1, 2, 1))
+with segment_h_col1:
+    st.image(segmentJunglefowl.SegmentJunglefowl.icon, width=100)
+with segment_h_col2:
     st.header("Gold Silver Bronze segments")
+st.write("""The Gold Silver Bronze segments policy uses the traditional marketing segmentation 
+where we segment the base into High medium and low revenue groups. 
+Then for every group we assign actions that try and sell them a product or service with a price point for that group""")
+segment_col1, segment_col2, segment_col3 = st.columns((2, 1, 1))
+with segment_col1:
     gold_threshold: float = st.slider(label="Gold Segment", min_value=0.0, max_value=8000.0, value=5600.0, step=200.0)
     silver_threshold: float = st.slider(label="Silver Segment", min_value=0.0, max_value=8000.0, value=2800.0, step=200.0)
 
@@ -183,9 +204,22 @@ with segment_col2:
     ax.legend(["Gold", "Silver", "Bronze"])
     st.pyplot(fig)
 
+
+st.write("##")
+epsilon_h_col1, epsilon_h_col2, epsilon_h_col3 = st.columns((1, 2, 1))
+with epsilon_h_col1:
+    st.image(epsilonRingtail.EpsilonRingtail.icon, width=100)
+with epsilon_h_col2:
+    st.header("Epsilon Greedy")
+st.write("""The Epsilon Greedy policy uses a basic Explorer/Exploit ratio to test out new campaigns to better estimate 
+the conversion rate. Then for every customer the estimated conversion rate is multiplied by the increase in 
+Household Lifetime value (Delta HLV) to calculate teh estimated revenue. 
+The Epsilon parameter defines the percentage of instances the algorithm will Exploit the campaign that is 
+estimated to give the highest revenue. The rest of the time (1 - Epsilon) the algorithum will test the newer campaigns.
+This is because we will never have enough chances to calculate the true conversion rate of a campaign. 
+This is to avoid campaigns that had bad luck to be tested on the difficult people first still get another chance.""")
 epsilon_col1, epsilon_col2, epsilon_col3 = st.columns((2, 1, 1))
 with epsilon_col1:
-    st.header("Epsilon Greedy")
     epsilon: float = st.slider(label="Epsilon", min_value=0.1, max_value=0.9, value=0.8, step=0.1)
     resort_batch_size: int = st.slider(label="Batch size", min_value=1, max_value=201, value=51, step=10)
 
@@ -202,9 +236,18 @@ with epsilon_col2:
     ax.legend()
     st.pyplot(fig)
 
+st.write("##")
+bayesian_h_col1, bayesian_h_col2, bayesian_h_col3 = st.columns((1, 2, 1))
+with bayesian_h_col1:
+    st.image(bayesianGroundhog.BayesianGroundhog.icon, width=100)
+with bayesian_h_col2:
+    st.header("Bayesian")
+st.write("""The Bayesian policy uses Thompson-Sampling to estimate the rewards of serving the customer each campaign. 
+Each Action reward is defined as a beta distribution that is updated when ever an Action succeeds or fails. 
+The Action beta distribution is sampled for every new customer to generate the expected rewards for that customer.
+The algorithm then chooses the action with the maximum expected reward (Delta Household Lifetime Value.""")
 bayesian_col1, bayesian_col2 = st.columns(2)
 with bayesian_col1:
-    st.header("Bayesian")
     initial_trials: int = st.slider(label="Initial Trails", min_value=0, max_value=500, value=99, step=1)
     initial_wins: int = st.slider(label="Initial Wins", min_value=0, max_value=500, value=1, step=1)
 
@@ -355,6 +398,9 @@ def do_simulations(runs_per_policies, sequential_runs, customers, actions,
 
     return plot_dfs, xs, policy_labels, ys, last_mean_value
 
+
+st.write("##")
+st.write("##")
 
 row3_col1, row3_col2, row3_col3 = st.columns((2, 1, 1))
 with row3_col1:

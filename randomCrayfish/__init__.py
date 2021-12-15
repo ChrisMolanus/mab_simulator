@@ -2,4 +2,4 @@ from policy import Policy
 
 
 class RandomCrayfish(Policy):
-    pass
+    icon =  "https://cdn-icons-png.flaticon.com/512/2884/2884993.png"

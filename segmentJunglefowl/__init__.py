@@ -9,6 +9,8 @@ from segmentJunglefowl.marketingSegment import GoldSilverBronze, GoldSilverBronz
 
 
 class SegmentJunglefowl(Policy):
+    icon = "https://icon-library.com/images/rooster-icon/rooster-icon-13.jpg"
+
     def __init__(self, current_base, **kwargs):
         """
         Simulates the logic of a marketing department using a Gold, Silver, Bronze segmenting system.

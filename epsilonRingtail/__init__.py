@@ -38,6 +38,8 @@ class Arm:
 
 
 class EpsilonRingtail(Policy):
+    icon = "https://static.thenounproject.com/png/1259466-200.png"
+
     def __init__(self, epsilon: float, resort_batch_size: int, **kwargs):
         """
         Epsilon greedy
@@ -52,6 +54,7 @@ class EpsilonRingtail(Policy):
         self.reward_calculator = RewardCalculator()
         self.now_ts = datetime.now()
         self.last_updated = datetime.now() - timedelta(days=1)
+
 
     def add_arm(self, action: Action, segment_ids: List[str]):
         arm = Arm(action)

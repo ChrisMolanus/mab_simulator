@@ -289,6 +289,8 @@ class Transaction(CustomerAction):
 
 
 class Policy:
+    icon = "https://cdn-icons-png.flaticon.com/512/1813/1813879.png"
+
     def __init__(self, **kwargs):
         """
         A Marketing policy that provides Next Best Actions for customers
