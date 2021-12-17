@@ -208,7 +208,7 @@ class Action:
         Action as defined by Marketing
         :param name: Name of Action as it is know in Marketing
         :param channel: The Marketing channel
-        :param offer: The group of products (and discounts) that are assosiated with this offer, can be None
+        :param offer: The group of products (and discounts) that are associated with this offer, can be None
         :param content: The marketing content use during serving of this Action
         :param start_date: The day that this action is allowed to be assigned to a customer
         :param end_date: The last day this action can be assigned to a customer
@@ -271,8 +271,9 @@ class ServedActionPropensity:
         """
         The NBA of the Policy and the propensity of the other actions for this customer
         :param customer: The customer
-        :param chosen_action: The Next Best Action
-        :param action_propensities: The propensity of the other actions
+        :param chosen_action: The suggested Next Best Action
+        :param action_propensities: The propensity of that other actions could have been taken for this customer
+        at the time of the decision.
         """
         self.customer = customer
         self.chosen_action = chosen_action
