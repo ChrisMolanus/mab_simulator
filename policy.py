@@ -243,6 +243,29 @@ class Action:
         return self.name.__hash__()
 
 
+class HistoricalActionPropensity:
+    def __init__(self, customer: Customer, chosen_action: Action, action_propensities: Dict[str, float], reward: float,
+                 action_date: datetime, reward_date: datetime):
+        """
+        The result of a past action on a customer
+        :param customer: The customer the action was taken on
+        :param chosen_action: The action that was performed (Treatment)
+        :param action_propensities: The propensity of that other actions could have been taken for this customer
+        at the time of the decision.
+        :param reward: The reward seem after the chosen_action was taken.
+        Negative rewards can be due to the loss encored by performing the action that did not result in a sale.
+        Positive rewards can be due the a monitory value of a sale being more that the cost of performing the action.
+        :param action_date: The timestamp the action was performed by the company for this customer
+        :param reward_date: The timestamp a reward was measure.
+        """
+        self.customer = customer
+        self.chosen_action = chosen_action
+        self.action_propensities = action_propensities
+        self.reward = reward
+        self.action_date = action_date
+        self.reward_date = reward_date
+
+
 class ServedActionPropensity:
     def __init__(self, customer: Customer, chosen_action: Action, action_propensities: Dict[str, float]):
         """
@@ -291,7 +314,7 @@ class Transaction(CustomerAction):
 class Policy:
     icon = "https://cdn-icons-png.flaticon.com/512/1813/1813879.png"
 
-    def __init__(self, **kwargs):
+    def __init__(self, history: List[HistoricalActionPropensity], **kwargs):
         """
         A Marketing policy that provides Next Best Actions for customers
         based on the customer context and historical action rewards
