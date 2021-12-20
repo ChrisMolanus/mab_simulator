@@ -278,6 +278,10 @@ class ServedActionPropensity:
         self.customer = customer
         self.chosen_action = chosen_action
         self.action_propensities = action_propensities
+        self.action_ts = None
+
+    def set_action_timestamp(self, action_ts: datetime):
+        self.action_ts = action_ts
 
 
 class CustomerAction:
