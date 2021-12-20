@@ -245,7 +245,7 @@ class Action:
 
 class HistoricalActionPropensity:
     def __init__(self, customer: Customer, chosen_action: Action, action_propensities: Dict[str, float], reward: float,
-                 action_date: datetime, reward_date: datetime):
+                 action_ts: datetime, reward_ts: datetime):
         """
         The result of a past action on a customer
         :param customer: The customer the action was taken on
@@ -255,15 +255,15 @@ class HistoricalActionPropensity:
         :param reward: The reward seem after the chosen_action was taken.
         Negative rewards can be due to the loss encored by performing the action that did not result in a sale.
         Positive rewards can be due the a monitory value of a sale being more that the cost of performing the action.
-        :param action_date: The timestamp the action was performed by the company for this customer
-        :param reward_date: The timestamp a reward was measure.
+        :param action_ts: The timestamp the action was performed by the company for this customer
+        :param reward_ts: The timestamp a reward was measure.
         """
         self.customer = customer
         self.chosen_action = chosen_action
         self.action_propensities = action_propensities
         self.reward = reward
-        self.action_date = action_date
-        self.reward_date = reward_date
+        self.action_ts = action_ts
+        self.reward_ts = reward_ts
 
 
 class ServedActionPropensity:
