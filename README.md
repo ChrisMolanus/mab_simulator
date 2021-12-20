@@ -12,20 +12,26 @@ Typical implementations you can find online focus on optimizing conversion rate.
 The implementations here focus on optimizing Delta Customer Lifetime Value
 
 ##SegmentJunglefowl
-This is an implimention that simulates the standard Marketing Gold Silver Bronze segmentation.
-It is intded to be seen as refrence for how a marketing department might work if the customer segments and actions where mapped by hand.
+This is an implementation that simulates the standard Marketing VIP Gold Silver Bronze segmentation. For simplicity, 
+we only implemented a three tier marketing segmentation
+It is intended to be seen as reference for how a marketing department might work 
+if the customer segments and actions where mapped by hand.
 
 ![SegmentJunglefowl timeline](images/SegmentJunglefowl.png)
 
 ## EpsilonRingtail
-This is a policy based on the Epsilon greedy methode.
-This implementation optimize for maximum average customer lifetime value instead of minimizing regret.
+This is a policy based on the Epsilon greedy methode, which take a Semi-Uniform strategy. 
+Meaning the most profitable campaign for this customer is allocated to the customer 
+except for when a random campaign is taken.
+This implementation optimize for maximum average customer lifetime value(profit) instead of minimizing regret.
+Taking a random campaign every so now and then attempts to give what may seem like sub-optimal campaigns at the time a chance.
 
 ![EpsilonRingtail timeline](images/EpsilonRingtail.png)
 
 ## BayesianGroundhog
 This is a policy based on Thomson sampling from a Beta distribution of product convert rates.
-And the sampled conversion rate is then multiples by the average reward to get the expected customer lifetime value of the action.
+And the sampled conversion rate is then multiples by the average customer lifetime value(reward)
+to get the Expected customer lifetime value of the campaign(action).
 The algorithm then chooses the action with the maximum expected customer lifetime value.
 
 ![BayesianGroundhog timeline](images/BayesianGroundhog.png)
