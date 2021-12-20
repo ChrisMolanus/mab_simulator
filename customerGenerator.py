@@ -113,12 +113,21 @@ def generate_names(nr_of_customers) -> List[Dict[str, str]]:
     return names
 
 
-def what_would_a_customer_do(customer: Customer, action: Action, ts: datetime) -> CustomerAction:
+# Realistic conventions rates for these channels
+# Exponential decrease in probability of conversion over 21 days(cool off)
+conversion_per_channel: Dict[Channel, np.ndarray] = {
+    Channel.OUTBOUND_EMAIL: np.power(0.8, np.arange(0, 21)) * 0.0003,
+    Channel.OUTBOUND_CALL: np.power(0.8, np.arange(0, 21)) * 0.013}
+
+
+def what_would_a_customer_do(customer: Customer, action: Action, ts: datetime,
+                             days_since_last_action: int = 0) -> CustomerAction:
     """
     An agent that assumes a rational customer and simulates the decision process of a customer to buy a new product
     :param customer: The customer
     :param action: The Action performed on the customer
     :param ts: The timestamp it was performed
+    :param days_since_last_action: The number of days since the customer was last contacted
     :return: None: Customer did nothing or rejected offer, A Transaction: Customer accepted offer
     """
     for product in customer.portfolio:
@@ -130,13 +139,12 @@ def what_would_a_customer_do(customer: Customer, action: Action, ts: datetime) -
             offer_internet = product
             break
 
-    # Realistic conventions rates for these channels [Convert, Reject/ignore]
-    conversion_per_channel = {Channel.OUTBOUND_EMAIL: [0.001, 0.999], Channel.OUTBOUND_CALL: [0.03, 0.97]}
+    conversion_rate = conversion_per_channel[action.channel][min(days_since_last_action, 20)]
 
     # Only buy if offer is better that what we have and it costs less than 10% more and random chance is in your favour
     if current_internet.kwargs["download_speed"] < offer_internet.kwargs["download_speed"]\
             and offer_internet.list_price/current_internet.list_price < 1.1\
-            and np.random.choice([True, False], 1, True, conversion_per_channel[action.channel]):
+            and np.random.choice([True, False], 1, True, [conversion_rate, 1-conversion_rate]):
         added: List[CustomerProduct] = list()
         for product in action.offer.products:
             added.append(customer_product_from_product(product,
