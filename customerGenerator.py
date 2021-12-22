@@ -22,13 +22,16 @@ def get_products(active_window_start: date = None, active_window_end: date = Non
     with open('data/products.csv', mode='r') as infile:
         reader = csv.DictReader(infile, delimiter=';')
         for row in reader:
-            products.append(Product(id=row["id"], name=row["name"], list_price=float(row["yearly_list_price"]),
-                                    margin=float(row["yearly_margin"]), product_type=ProductType.FIXED_INTERNET,
-                                    start_date=datetime.strptime(row["start_date"], '%Y-%m-%d').date(),
-                                    end_date=datetime.strptime(row["end_date"], '%Y-%m-%d').date(),
-                                    download_speed=float(row["download_speed"]),
-                                    upload_speed=float(row["upload_speed"])))
-            product_market_size.append(float(row["segment_size"]))
+            start_date = datetime.strptime(row["start_date"], '%Y-%m-%d').date()
+            end_date = datetime.strptime(row["end_date"], '%Y-%m-%d').date()
+            if active_window_start is None or (start_date < active_window_end and end_date > active_window_start):
+                products.append(Product(id=row["id"], name=row["name"], list_price=float(row["yearly_list_price"]),
+                                        margin=float(row["yearly_margin"]), product_type=ProductType.FIXED_INTERNET,
+                                        start_date=start_date,
+                                        end_date=end_date,
+                                        download_speed=float(row["download_speed"]),
+                                        upload_speed=float(row["upload_speed"])))
+                product_market_size.append(float(row["segment_size"]))
     return products, product_market_size
 
 
