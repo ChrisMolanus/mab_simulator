@@ -75,9 +75,9 @@ class GoldSilverBronze(CustomerSegmentor):
         :return:
         """
         margin = self.hlv_calculator.get_hlv(customer, context_date)
-        if margin > self.gold_threshold:
+        if margin >= self.gold_threshold:
             return GoldSilverBronzeSegment.Gold
-        elif margin > self.silver_threshold:
+        elif margin >= self.silver_threshold:
             return GoldSilverBronzeSegment.Silver
         else:
             return GoldSilverBronzeSegment.Bronze
