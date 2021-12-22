@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import random
 from typing import Dict, List, Tuple
 
@@ -10,9 +10,11 @@ from policy import ProductType, Product, Customer, Address, Action, CustomerActi
     CustomerProduct, customer_product_from_product
 
 
-def get_products() -> Tuple[List[Product], List[float]]:
+def get_products(active_window_start: date = None, active_window_end: date = None) -> Tuple[List[Product], List[float]]:
     """
     Reads the data/products.csv file and return Product objects and the current market size per product
+    :param active_window_start: beginning of time window where product should have been active (oldest time)
+    :param active_window_end: end of time window where product should have been active (youngest time)
     :return: All products(well for now they are Offers) and teh proportion of the base that has the product
     """
     products: List[Product] = list()
