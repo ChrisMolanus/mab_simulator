@@ -222,16 +222,17 @@ class Action:
         self.end_date = end_date
         self.cool_off_days = cool_off_days
 
-    def get_max_margin(self) -> float:
+    def get_max_margin(self, years_horizon: int = 5) -> float:
         """
-        Get the margin we make if we sell all of the products in the offer.
+        Get the annual margin we make if we sell all of the products in the offer.
         This is different from the actual margin since it does not take the long term revenue
+        :param years_horizon: The number of years to assume the person does not churn
         :return: The margin we make if we sell all of the products in the offer
         """
         margin = 0.0
         for product in self.offer.products:
             margin += product.get_margin()
-        return margin - get_channel_action_cost(self.channel)
+        return (margin * years_horizon) - get_channel_action_cost(self.channel)
 
     def __eq__(self, other):
         return self.name == other.name
