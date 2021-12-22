@@ -76,7 +76,7 @@ def get_actions() -> List[Action]:
                 else:
                     content = Content(name=f"Content for Offer {product.name} in channel {channel}", channel=channel,
                                       template=template, product=product.name)
-                actions.append(Action(name=f"Sell {product.name} in {channel} using {template}",
+                actions.append(Action(name=f"Sell {product.name} in {channel} using template :{template}",
                                       channel=channel,
                                       offer=offer,
                                       content=content,
