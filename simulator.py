@@ -271,7 +271,8 @@ if __name__ == "__main__":
     sequential_runs = 1
 
     processes = list()
-    customers = generate_customers(100000)
+    start_ts = datetime.today()
+    customers = generate_customers(100000, start_ts.date())
     actions = get_actions()
     output_queue = Queue()
     for policy_class in policies:

@@ -35,31 +35,43 @@ def get_products(active_window_start: date = None, active_window_end: date = Non
     return products, product_market_size
 
 
-def generate_portfolios(nr_of_customers) -> List[List[CustomerProduct]]:
+def generate_portfolios(nr_of_customers, sim_start_date, product_market_sizes: List[float] = None) -> List[List[CustomerProduct]]:
     """
     Generates fake portfolios
     :param nr_of_customers: The number of portfolios to generate
+    :param sim_start_date: The start date of the simulation
+    :param product_market_sizes: The relative size of the number of customers with a product
     :return: List[List[Product]]
     """
-    products, product_market_size = get_products()
+    products, product_market_size = get_products(sim_start_date - timedelta(days=2190), sim_start_date)
+    if product_market_sizes is not None:
+        product_market_size = product_market_sizes
 
     portfolios: List[List[CustomerProduct]] = list()
     p: Product
     for p in np.random.choice(products, nr_of_customers, p=product_market_size):
-        contract_start = (p.start_date + timedelta(days=random.randint(0, 2190)))
+        if p.end_date > sim_start_date:
+            c_start_min = 0
+            c_start_max = 2190
+        else:
+            c_start_min = (sim_start_date - p.end_date).days
+            c_start_max = (sim_start_date - p.start_date).days
+        contract_start = (sim_start_date - timedelta(days=random.randint(c_start_min, c_start_max)))
         contract_end = (contract_start + timedelta(weeks=52))
         cp = customer_product_from_product(p, contract_start, contract_end)
         portfolios.append([cp])
     return portfolios
 
 
-def generate_customers(nr_of_customers) -> List[Customer]:
+def generate_customers(nr_of_customers, sim_start_date: datetime, product_market_sizes: List[float] = None) -> List[Customer]:
     """
     Generates fake customers
     :param nr_of_customers: The number of customers to generate
+    :param sim_start_date: The start date of the simulation
+    :param product_market_sizes: The relative size of the number of customers with a product
     :return: List[Customer]
     """
-    portfolios = generate_portfolios(nr_of_customers)
+    portfolios = generate_portfolios(nr_of_customers, sim_start_date, product_market_sizes)
     names = generate_names(nr_of_customers)
     customers: List[Customer] = list()
     for i in range(nr_of_customers):
