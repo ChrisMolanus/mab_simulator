@@ -143,7 +143,7 @@ def get_channel_action_cost(channel: Channel) -> float:
     if channel == Channel.OUTBOUND_EMAIL:
         return 0.0
     elif channel == Channel.OUTBOUND_CALL:
-        return 8.0
+        return 3.0
     elif channel == Channel.DOOR_TO_DOOR:
         return 14.50
     elif channel == Channel.NEWSLETTER:
