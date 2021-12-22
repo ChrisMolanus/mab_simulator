@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Set, Optional
 
 from policy import Policy, Action, ServedActionPropensity, CustomerAction, Customer, Channel, \
-    customer_product_from_product
+    customer_product_from_product, HistoricalActionPropensity
 
 import numpy as np
 
@@ -40,7 +40,7 @@ class Arm:
 class EpsilonRingtail(Policy):
     icon = "https://static.thenounproject.com/png/1259466-200.png"
 
-    def __init__(self, epsilon: float, resort_batch_size: int, **kwargs):
+    def __init__(self, history: List[HistoricalActionPropensity], epsilon: float, resort_batch_size: int, **kwargs):
         """
         Epsilon greedy
         """

@@ -3,7 +3,7 @@ from typing import Dict, List, Set, Optional
 
 import numpy as np
 
-from policy import Policy, Action, ServedActionPropensity, CustomerAction, Customer, Channel
+from policy import Policy, Action, ServedActionPropensity, CustomerAction, Customer, Channel, HistoricalActionPropensity
 from rewardCalculator import RewardCalculator
 
 
@@ -55,7 +55,7 @@ class BayesianGroundhog(Policy):
     icon = "https://cdn-icons-png.flaticon.com/512/185/185716.png"
 
     # https://peterroelants.github.io/posts/multi-armed-bandit-implementation/
-    def __init__(self, initial_trials: float = 99, initial_conversions: int = 1, **kwargs):
+    def __init__(self, history: List[HistoricalActionPropensity], initial_trials: float = 99, initial_conversions: int = 1, **kwargs):
         """
         Bayesian Bandit
         """

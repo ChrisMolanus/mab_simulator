@@ -23,9 +23,9 @@ from rewardCalculator import RewardCalculator
 call_center_daily_quota = 200
 
 
-
 def policy_sim(policy_class, all_customers: List[Customer], all_actions: List[Action], day_count: int, output: Queue,
-               run_id: int, sequential_runs: int, **kwargs) -> DataFrame:
+               run_id: int, sequential_runs: int, history: List[HistoricalActionPropensity],
+               start_ts: datetime = datetime.today(), **kwargs) -> DataFrame:
     print(policy_class.__name__ + str(run_id))
     seed(7831 * run_id)
     np.random.seed(7831 * run_id)
@@ -41,8 +41,7 @@ def policy_sim(policy_class, all_customers: List[Customer], all_actions: List[Ac
     for s_run in range(sequential_runs):
         # Just overwrite the chosen_action_log and take the last one
         log, chosen_action_log, _ = sim_cycle_run(all_actions, all_customers, day_count,
-                                                  kwargs, policy_class,
-                                                  reward_calculator, run_id)
+                                                  policy_class, reward_calculator, history, start_ts, **kwargs)
         logs.append(log)
 
     # Only the last chosen_action_log
@@ -54,31 +53,33 @@ def policy_sim(policy_class, all_customers: List[Customer], all_actions: List[Ac
     return True
 
 
-def sim_cycle_run(all_actions, all_customers, day_count, kwargs, policy_class, reward_calculator,
-                  run_id) -> List[Dict[str, Any]]:
+def sim_cycle_run(all_actions, all_customers, day_count, policy_class, reward_calculator,
+                  history: List[HistoricalActionPropensity], start_ts: datetime = datetime.today(), **kwargs
+                  ) -> List[Dict[str, Any]]:
     chosen_action_log: Dict[datetime, Dict[str, int]] = dict()
     log: List[Dict[str, Any]] = list()
     customers: List[Customer] = all_customers.copy()
-    policy: Policy = policy_class(**kwargs)
-    today = datetime.today().date()
+    policy: Policy = policy_class(history, **kwargs)
+    policy.set_datetime(start_ts)
+    today = start_ts.date()
     actions: List[Action] = list()
-    historicalActionPropensities: List[HistoricalActionPropensity] = list()
+    historicalActionPropensities: List[HistoricalActionPropensity] = history
     # Since we are simulating implementing this in a company already has customers
     # and has already ran campaigns in the past we initialize teh policy with the actions that are already active
     for action in all_actions:
         # So not today == action.start_date, that is later
-        if action.start_date < today < action.end_date:
+        if action.start_date <= today < action.end_date:
             policy.add_arm(action, [1])
-        elif action.start_date > today:
+        elif action.start_date >= today:
             actions.append(action)
     served_action_propensities: Dict[int, ServedActionPropensity] = dict()
     action_timeout: Dict[datetime, dict[int, ServedActionPropensity]] = dict()
     # Run a simulation of day_count number of days and track the cumulative_reward
     cumulative_reward = 0.0
-    start_date = datetime.today()
-    for today_datetime in (start_date + timedelta(n) for n in range(day_count)):
+    for today_datetime in (start_ts + timedelta(n) for n in range(day_count)):
         today = today_datetime.date()
-        action_timeout[today] = dict()
+        if today not in action_timeout:
+            action_timeout[today] = dict()
 
         # Only one sim should create a sample offer distribution plot
         chosen_action_log[today] = dict()
@@ -126,7 +127,7 @@ def sim_cycle_run(all_actions, all_customers, day_count, kwargs, policy_class, r
 
         # Look for old actions that have timed out
         if today in action_timeout:
-            for served_action_propensity in action_timeout[today]:
+            for customer_id, served_action_propensity in action_timeout[today].items():
                 # Gave up on this customer since they did not convert
                 reward = get_channel_action_cost(served_action_propensity.chosen_action.channel) * -1
                 policy.add_customer_action(served_action_propensity=served_action_propensity,
@@ -275,12 +276,13 @@ if __name__ == "__main__":
     customers = generate_customers(100000, start_ts.date())
     actions = get_actions()
     output_queue = Queue()
+    history: List[HistoricalActionPropensity] = list()
     for policy_class in policies:
         for r in range(runs_per_policies):
             keywords = {'epsilon': 0.8, 'resort_batch_size': 50, "initial_trials": 99, "initial_conversions": 1,
                         "current_base": customers}
             p = Process(target=policy_sim,
-                        args=(policy_class, customers, actions, 365, output_queue, r, sequential_runs),
+                        args=(policy_class, customers, actions, 365, output_queue, r, sequential_runs, history, start_ts),
                         kwargs=keywords)
             p.start()
             processes.append(p)
