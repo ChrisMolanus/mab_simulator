@@ -141,6 +141,7 @@ def sim_cycle_run(all_actions, all_customers, day_count, kwargs, policy_class, r
                                                reward=reward
                                                )
                 )
+                cumulative_reward += reward
         del action_timeout[today]
 
         # Fist simulate late reactions of customers that were contacted on other days
