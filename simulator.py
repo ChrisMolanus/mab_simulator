@@ -1,7 +1,7 @@
 import csv
 from datetime import datetime, timedelta
 from random import seed
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Tuple
 from multiprocessing import Process, Queue
 
 from pandas import DataFrame
@@ -55,7 +55,7 @@ def policy_sim(policy_class, all_customers: List[Customer], all_actions: List[Ac
 
 def sim_cycle_run(all_actions, all_customers, day_count, policy_class, reward_calculator,
                   history: List[HistoricalActionPropensity], start_ts: datetime = datetime.today(), **kwargs
-                  ) -> List[Dict[str, Any]]:
+                  ) -> Tuple[List[Dict[str, Any]],Dict[datetime, Dict[str, int]],List[HistoricalActionPropensity]]:
     chosen_action_log: Dict[datetime, Dict[str, int]] = dict()
     log: List[Dict[str, Any]] = list()
     customers: List[Customer] = all_customers.copy()
