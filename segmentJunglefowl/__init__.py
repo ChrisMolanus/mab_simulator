@@ -97,11 +97,11 @@ class SegmentJunglefowl(Policy):
         # First make a logical deviation of actions over the customer segments
         for margin, pairs in margins.items():
             for segment_id, action_1 in pairs:
-                if margin > self.gold_product_threshold :
+                if margin > self.gold_product_threshold:
                     if segment_id not in self.segment_actions[GoldSilverBronzeSegment.Gold]:
                         self.segment_actions[GoldSilverBronzeSegment.Gold][segment_id] = set()
                     self.segment_actions[GoldSilverBronzeSegment.Gold][segment_id].add(action_1)
-                elif margin > self.silver_product_threshold:
+                if margin > self.silver_product_threshold:
                     if segment_id not in self.segment_actions[GoldSilverBronzeSegment.Silver]:
                         self.segment_actions[GoldSilverBronzeSegment.Silver][segment_id] = set()
                     self.segment_actions[GoldSilverBronzeSegment.Silver][segment_id].add(action_1)
