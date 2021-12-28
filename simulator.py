@@ -35,7 +35,8 @@ class TelcoSimulator:
                               nr_of_customers: int = 10000, export: bool = False
                               ) -> Tuple[List[HistoricalActionPropensity], List[Customer], List[Action]]:
         """
-        Generates transactions of generated customers using the JungleFowl policy
+        Generates transactions of generated customers using the JungleFowl policy.
+        This is meant to represent the policy of a human marketing department that ran the marketing actions in the past
         :param start_ts: The date to start simulating a transaction history, default 1st Jan 2011
         :param day_count: The number of days the generate a history for
         :param nr_of_customers: The number of customers to simulate as starting base
