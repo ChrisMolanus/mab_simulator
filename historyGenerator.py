@@ -73,6 +73,21 @@ def export_history_to_parquet(historicalActionPropensities: List[HistoricalActio
     customers.to_parquet(os.path.join(output_dir, "customers.parquet"), index=False)
     del customers
 
+    # Export customer portfolios
+    customer_portfolio_list = list()
+    for customer in all_customers:
+        for product in customer.portfolio:
+            customer_portfolio_list.append(
+                {
+                    "customer_id": customer.id,
+                    "product_id": product.name
+                }
+            )
+    customer_portfolios = pd.DataFrame(customer_portfolio_list)
+    customer_portfolios.to_parquet(os.path.join(output_dir, "customer_portfolios.parquet"), index=False)
+    print("Exported customer_portfolios.parquet")
+    del customer_portfolios
+
     # Export actions
     action_list = list()
     action_product_list = list()
