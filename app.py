@@ -18,7 +18,7 @@ import segmentJunglefowl
 from actionGenerator import get_actions
 from customerGenerator import generate_customers, get_products
 from rewardCalculator import HlvCalculator
-from simulator import do_simulations, plot_timelines, plot_performance
+from simulator import TelcoSimulator #do_simulations, plot_timelines, plot_performance
 
 st.set_page_config(layout="wide")
 
@@ -449,25 +449,28 @@ if __name__ == '__main__':
         gold_t = gold_threshold
         silver_t = silver_threshold
 
+    simulator = TelcoSimulator()
     chosen_action_logs: Dict[str, Dict[datetime, Dict[str, int]]] = dict()
     with row3_col2:
         if run:
+            # Run simulations
             policies = [randomCrayfish.RandomCrayfish, segmentJunglefowl.SegmentJunglefowl,
                         epsilonRingtail.EpsilonRingtail,bayesianGroundhog.BayesianGroundhog]
             keywords = {'epsilon': epsilon, 'resort_batch_size': resort_batch_size, "initial_trials": initial_trials,
                         "initial_conversions": initial_wins, "current_base": customers,
                         "gold_threshold": gold_threshold, "silver_threshold": silver_threshold}
 
-            all_logs, chosen_action_logs = do_simulations(policies, keywords, runs_per_policies, sequential_runs,
-                                                          customers,
-                                                          actions, day_count, start_ts)
+            all_logs, chosen_action_logs = simulator.do_simulations(policies, keywords, runs_per_policies,
+                                                                    sequential_runs, customers, actions, day_count,
+                                                                    start_ts)
 
              # Plot performance
-            st.pyplot(plot_performance(all_logs, show=False, save=False))
+            st.pyplot(simulator.plot_performance(all_logs, show=False, save=False))
 
     with row3_col3:
         if run:
-            plots = plot_timelines(chosen_action_logs, actions, show=False, save=False)
+            # Plot one timeline per policy
+            plots = simulator.plot_timelines(chosen_action_logs, actions, show=False, save=False)
             for policy_name, fig in plots.items():
                 st.subheader(policy_name)
                 st.pyplot(fig)
