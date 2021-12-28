@@ -1,6 +1,6 @@
 from datetime import datetime, date
-from multiprocessing import Queue, Process, freeze_support
-from typing import Dict, List, Any
+from multiprocessing import freeze_support
+from typing import Dict
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -9,7 +9,6 @@ import pandas as pd
 import scipy.stats as stats
 import streamlit as st
 from matplotlib import ticker, patches
-from pandas import DataFrame
 
 import bayesianGroundhog
 import epsilonRingtail
@@ -18,7 +17,7 @@ import segmentJunglefowl
 from actionGenerator import get_actions
 from customerGenerator import generate_customers, get_products
 from rewardCalculator import HlvCalculator
-from simulator import TelcoSimulator #do_simulations, plot_timelines, plot_performance
+from simulator import TelcoSimulator
 
 st.set_page_config(layout="wide")
 
@@ -57,7 +56,7 @@ with cust_col1:
 
     nr_of_customers: float = st.slider(label="Base Size", min_value=10000, max_value=800000, value=100000, step=10000)
 
-    customers = generate_customers(nr_of_customers, today)
+    customers = generate_customers(int(nr_of_customers), today)
 
     sample_cust = customers[0:8]
     cust_list = list()
@@ -278,10 +277,10 @@ with bayesian_col2:
     p_bandits = [0.45, 0.55, 0.60]
 
 
-    def pull(i):
+    def pull(arm_index):
         """Pull arm of bandit with index `i` and return 1 if win,
         else return 0."""
-        if np.random.rand() < p_bandits[i]:
+        if np.random.rand() < p_bandits[arm_index]:
             return 1
         else:
             return 0
@@ -292,16 +291,16 @@ with bayesian_col2:
     plots = [2, 10, 50, 200, 500, 1000]
 
 
-    def plot(priors, step, ax):
+    def plot(priors, step_count, ax_of_plot):
         """Plot the priors for the current step."""
         plot_x = np.linspace(0.001, .999, 100)
         for prior in priors:
-            y = prior.pdf(plot_x)
-            p = ax.plot(plot_x, y)
-            ax.fill_between(plot_x, y, 0, alpha=0.2)
-        ax.set_xlim([0, 1])
-        ax.set_ylim(bottom=0)
-        ax.set_title(f'Priors at step {step:d}')
+            plot_y = prior.pdf(plot_x)
+            _ = ax_of_plot.plot(plot_x, plot_y)
+            ax_of_plot.fill_between(plot_x, plot_y, 0, alpha=0.2)
+        ax_of_plot.set_xlim([0, 1])
+        ax_of_plot.set_ylim(bottom=0)
+        ax_of_plot.set_title(f'Priors at step {step_count:d}')
 
 
     fig, axs = plt.subplots(2, 3, )
@@ -435,6 +434,8 @@ with row3_col1:
              "Running multiple instance can be done by her increasing the number of sim threads per policy or "
              "the never of sequential runs within one thread")
 
+    # Defaults are optimized for Linux OS, Windows take a long time ot start a Thread so 1 thread per policy
+    # and more sequential runs is advised
     runs_per_policies = st.slider(label="Threads per policy", min_value=1, max_value=10, value=5, step=1)
     sequential_runs = st.slider(label="Sequential runs per thread", min_value=1, max_value=10, value=1, step=1)
     day_count = st.slider(label="Number of days to simulate", min_value=21, max_value=365, value=50, step=1)
@@ -455,7 +456,7 @@ if __name__ == '__main__':
         if run:
             # Run simulations
             policies = [randomCrayfish.RandomCrayfish, segmentJunglefowl.SegmentJunglefowl,
-                        epsilonRingtail.EpsilonRingtail,bayesianGroundhog.BayesianGroundhog]
+                        epsilonRingtail.EpsilonRingtail, bayesianGroundhog.BayesianGroundhog]
             keywords = {'epsilon': epsilon, 'resort_batch_size': resort_batch_size, "initial_trials": initial_trials,
                         "initial_conversions": initial_wins, "current_base": customers,
                         "gold_threshold": gold_threshold, "silver_threshold": silver_threshold}
@@ -464,7 +465,7 @@ if __name__ == '__main__':
                                                                     sequential_runs, customers, actions, day_count,
                                                                     start_ts)
 
-             # Plot performance
+            # Plot performance
             st.pyplot(simulator.plot_performance(all_logs, show=False, save=False))
 
     with row3_col3:
