@@ -1,4 +1,3 @@
-import csv
 from datetime import datetime, timedelta
 from random import seed
 from typing import Dict, List, Any, Tuple, Type, Union
@@ -298,43 +297,17 @@ def sim_cycle_run(all_actions, all_customers, day_count, policy_class, reward_ca
     return log, chosen_action_log, historicalActionPropensities
 
 
-def get_timeline_plot(x, y_per_action, label) -> plt.Figure:
+def plot_timelines(chosen_action_logs: Dict[str, Dict[datetime, Dict[str, int]]], actions: List[Action], show=True, save=True
+                   ) -> Dict[str, plt.Figure]:
     """
-    Generate time line plot
-    :param x:
-    :param y_per_action:
-    :param label:
-    :return:
+    Create plots for the timelines of the policies
+    :param chosen_action_logs: The Chosen Action Logs of the policies where the policy name is the key,
+    and the value is the number of times an action was chosen on that date were the action name is the key
+    :param actions: A list of all actions so we can know which are never chosen
+    :param show: True if the plots should be shown
+    :param save: True if the plots should be saved as {policy_name}.png
+    :return: plots , a dictionary where the policy name is the key and the matplotlib figure is the value
     """
-    # Basic stacked area chart.
-    fig, ax = plt.subplots()
-    ax.stackplot(x, *y_per_action)  # , labels=labels)
-    # plt.legend(loc='upper left')
-    ax.set(xlabel='time (days)', ylabel='NBA allocations',
-           title=label)
-    return fig
-
-
-def get_performance_plot(plot_dfs, sorted_policies):
-    fig, ax = plt.subplots()
-    for policy_name in sorted_policies:
-        policy = plot_dfs[policy_name]
-        euro = policy["mean"].iloc[-1]
-        policy["mean_k"] = policy["mean"] / 1000
-        policy["std_u"] = policy["mean_k"] + (policy["std"] / 1000)
-        policy["std_l"] = policy["mean_k"] - (policy["std"] / 1000)
-
-        ax.fill_between(policy["ts"], policy["std_l"], policy["std_u"], alpha=0.2)
-        ax.plot(policy["ts"], policy["mean_k"], label=f"{policy_name} €{euro}")
-
-    ax.set(xlabel='time (days)', ylabel='Cumulative HLV (1000 Euros)',
-           title='Policy performance')
-    ax.grid()
-    plt.legend()
-    return fig
-
-
-def plot_timelines(chosen_action_logs: Dict[str, Dict[datetime, int]], actions: List[Action], show=True, save=True) -> Dict[str, plt.Figure]:
     # Plot policy timelines
     xs: Dict[str, List[datetime]] = dict()
     policy_labels: Dict[str, List[str]] = dict()
@@ -361,7 +334,12 @@ def plot_timelines(chosen_action_logs: Dict[str, Dict[datetime, int]], actions: 
 
     plots: Dict[str, plt.Figure] = dict()
     for policy_name in policy_labels.keys():
-        fig = get_timeline_plot(xs[policy_name], ys[policy_name], policy_name)
+        fig, ax = plt.subplots()
+        ax.stackplot(x, *ys[policy_name])  # , labels=labels)
+        # plt.legend(loc='upper left')
+        ax.set(xlabel='time (days)', ylabel='NBA allocations',
+               title=policy_name)
+
         plots[policy_name] = fig
         if save:
             fig.savefig(f"{policy_name}.png")
@@ -391,7 +369,23 @@ def plot_performance(all_logs: Dict[str, Dict[datetime, List[float]]], show=Fals
         plot_dfs[policy] = DataFrame(plot_dict[policy])
     ordered_policies_by_clv = sorted(last_mean_value, key=last_mean_value.get)
     ordered_policies_by_clv.reverse()
-    fig = get_performance_plot(plot_dfs, ordered_policies_by_clv)
+
+    fig, ax = plt.subplots()
+    for policy_name in ordered_policies_by_clv:
+        policy = plot_dfs[policy_name]
+        euro = policy["mean"].iloc[-1]
+        policy["mean_k"] = policy["mean"] / 1000
+        policy["std_u"] = policy["mean_k"] + (policy["std"] / 1000)
+        policy["std_l"] = policy["mean_k"] - (policy["std"] / 1000)
+
+        ax.fill_between(policy["ts"], policy["std_l"], policy["std_u"], alpha=0.2)
+        ax.plot(policy["ts"], policy["mean_k"], label=f"{policy_name} €{euro}")
+
+    ax.set(xlabel='time (days)', ylabel='Cumulative HLV (1000 Euros)',
+           title='Policy performance')
+    ax.grid()
+    plt.legend()
+
     if save:
         fig.savefig("test.png")
     if show:
