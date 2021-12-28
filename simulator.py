@@ -50,9 +50,9 @@ def get_history(start_ts: datetime = datetime(2011, 1, 1),
 
     all_actions = get_actions()
 
-    log, chosen_action_log, historical_action_propensities = sim_cycle_run(all_actions, all_customers, day_count,
-                                                                           segmentJunglefowl.SegmentJunglefowl,
-                                                                           reward_calculator, [], start_ts, **keywords)
+    log, chosen_action_log, historical_action_propensities = _sim_cycle_run(all_actions, all_customers, day_count,
+                                                                            segmentJunglefowl.SegmentJunglefowl,
+                                                                            reward_calculator, [], start_ts, **keywords)
     if export:
         export_history_to_parquet(historical_action_propensities, all_customers, all_actions)
 
@@ -90,8 +90,8 @@ def policy_sim(policy_class, all_customers: List[Customer], all_actions: List[Ac
     # We can run multiple sequential runs since there is a time overhead to create new processes
     for s_run in range(sequential_runs):
         # Just overwrite the chosen_action_log and take the last one
-        log, chosen_action_log, _ = sim_cycle_run(all_actions, all_customers, day_count,
-                                                  policy_class, reward_calculator, history, start_ts, **kwargs)
+        log, chosen_action_log, _ = _sim_cycle_run(all_actions, all_customers, day_count,
+                                                   policy_class, reward_calculator, history, start_ts, **kwargs)
         logs.append(log)
 
     # Only the last chosen_action_log
@@ -103,9 +103,10 @@ def policy_sim(policy_class, all_customers: List[Customer], all_actions: List[Ac
     return True
 
 
-def sim_cycle_run(all_actions, all_customers, day_count, policy_class, reward_calculator,
-                  history: List[HistoricalActionPropensity], start_ts: datetime = datetime.today(), **kwargs
-                  ) -> Tuple[List[Dict[str, Any]], Dict[datetime, Dict[str, int]], List[HistoricalActionPropensity]]:
+def _sim_cycle_run(all_actions: List[Action], all_customers: List[Customer], day_count: int, policy_class: Type,
+                   reward_calculator: RewardCalculator, history: List[HistoricalActionPropensity],
+                   start_ts: datetime = datetime.today(), **kwargs
+                   ) -> Tuple[List[Dict[str, Any]], Dict[datetime, Dict[str, int]], List[HistoricalActionPropensity]]:
     """
     Run a single simulation cycle
     :param all_actions: The actions that can be executed on the customers
