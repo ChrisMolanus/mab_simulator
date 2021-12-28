@@ -1,12 +1,10 @@
 import datetime
-import json
 import os
 from random import seed
 from typing import List, Tuple
 
 import numpy as np
 import pandas as pd
-from matplotlib import pyplot as plt
 
 import segmentJunglefowl
 from actionGenerator import get_actions
@@ -62,7 +60,7 @@ def export_history_to_parquet(historical_action_propensities: List[HistoricalAct
     for customer in all_customers:
         customer_list.append(
             {
-                "id":customer.id,
+                "id": customer.id,
                 "name": customer.name,
                 "dob": customer.dob,
                 "billing_postcode": customer.billing_address.postcode,
