@@ -35,7 +35,9 @@ def get_products(active_window_start: date = None, active_window_end: date = Non
     return products, product_market_size
 
 
-def generate_portfolios(nr_of_customers, sim_start_date, product_market_sizes: List[float] = None) -> List[List[CustomerProduct]]:
+def generate_portfolios(nr_of_customers: int,
+                        sim_start_date: date,
+                        product_market_sizes: List[float] = None) -> List[List[CustomerProduct]]:
     """
     Generates fake portfolios
     :param nr_of_customers: The number of portfolios to generate
@@ -63,7 +65,7 @@ def generate_portfolios(nr_of_customers, sim_start_date, product_market_sizes: L
     return portfolios
 
 
-def generate_customers(nr_of_customers, sim_start_date: datetime, product_market_sizes: List[float] = None) -> List[Customer]:
+def generate_customers(nr_of_customers: int, sim_start_date: date, product_market_sizes: List[float] = None) -> List[Customer]:
     """
     Generates fake customers
     :param nr_of_customers: The number of customers to generate
