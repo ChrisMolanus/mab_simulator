@@ -214,6 +214,7 @@ with segment_col2:
     ax.add_patch(bronze_pathch)
 
     ax.set_ylabel('Number of customers')
+    ax.set_xlabel('Household Lifetime Value (5 year window)')
     ax.legend(["Gold", "Silver", "Bronze"])
     st.pyplot(fig)
 
