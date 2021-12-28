@@ -71,6 +71,7 @@ def export_history_to_parquet(historical_action_propensities: List[HistoricalAct
         )
     customers = pd.DataFrame(customer_list)
     customers.to_parquet(os.path.join(output_dir, "customers.parquet"), index=False)
+    print("Exported customers.parquet")
     del customers
 
     # Export customer portfolios
@@ -109,11 +110,13 @@ def export_history_to_parquet(historical_action_propensities: List[HistoricalAct
             })
     actions = pd.DataFrame(action_list)
     actions.to_parquet(os.path.join(output_dir, "actions.parquet"), index=False)
+    print("Exported actions.parquet")
     del actions
 
     # Export Product / Action link
     action_product = pd.DataFrame(action_product_list)
     action_product.to_parquet(os.path.join(output_dir, "action_product.parquet"), index=False)
+    print("Exported action_product.parquet")
     del action_product
 
     # Export Transactions
@@ -128,4 +131,5 @@ def export_history_to_parquet(historical_action_propensities: List[HistoricalAct
         })
     transactions = pd.DataFrame(transaction_list)
     transactions.to_parquet(os.path.join(output_dir, "transactions.parquet"), index=False)
+    print("Exported transactions.parquet")
     del transactions
