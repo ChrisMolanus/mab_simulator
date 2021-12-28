@@ -2,7 +2,7 @@ import datetime
 import json
 import os
 from random import seed
-from typing import List
+from typing import List, Tuple
 
 import numpy as np
 import pandas as pd
@@ -17,7 +17,7 @@ from simulator import sim_cycle_run
 
 
 def get_history(start_ts: datetime = datetime.datetime(2011, 1, 1),
-                export: bool = False) -> List[HistoricalActionPropensity]:
+                export: bool = False) -> Tuple[List[HistoricalActionPropensity], List[Customer], List[Action]]:
     seed(7837)
     np.random.seed(7837)
 
