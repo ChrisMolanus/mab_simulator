@@ -37,16 +37,16 @@ def get_history(start_ts: datetime = datetime.datetime(2011, 1, 1),
 
     all_actions = get_actions()
 
-    log, chosen_action_log, historicalActionPropensities = sim_cycle_run(all_actions, all_customers, day_count,
-                                                                         segmentJunglefowl.SegmentJunglefowl,
-                                                                         reward_calculator, [], start_ts, **keywords)
+    log, chosen_action_log, historical_action_propensities = sim_cycle_run(all_actions, all_customers, day_count,
+                                                                           segmentJunglefowl.SegmentJunglefowl,
+                                                                           reward_calculator, [], start_ts, **keywords)
     if export:
-        export_history_to_parquet(historicalActionPropensities, all_customers, all_actions)
+        export_history_to_parquet(historical_action_propensities, all_customers, all_actions)
 
-    return historicalActionPropensities
+    return historical_action_propensities, all_customers, all_actions
 
 
-def export_history_to_parquet(historicalActionPropensities: List[HistoricalActionPropensity],
+def export_history_to_parquet(historical_action_propensities: List[HistoricalActionPropensity],
                               all_customers: List[Customer],
                               all_actions: List[Action],
                               output_dir: str = "output"):
@@ -118,7 +118,7 @@ def export_history_to_parquet(historicalActionPropensities: List[HistoricalActio
 
     # Export Transactions
     transaction_list = list()
-    for t in historicalActionPropensities:
+    for t in historical_action_propensities:
         transaction_list.append({
             "id": t.customer.id,
             "action_ts": t.action_ts,
