@@ -18,11 +18,15 @@ import segmentJunglefowl
 from actionGenerator import get_actions
 from customerGenerator import generate_customers, get_products
 from rewardCalculator import HlvCalculator
-from simulator import policy_sim, get_performance_plot, get_timeline_plot
+from simulator import policy_sim, get_performance_plot, get_timeline_plot, do_simulations, plot_timelines, \
+    plot_performance
 
 st.set_page_config(layout="wide")
 
 matplotlib.use("agg")
+
+start_ts = datetime.today()
+today = start_ts.date()
 
 st.header("Telco Marketing simulator")
 row1_col1, row1_col2 = st.columns(2)
@@ -54,7 +58,7 @@ with cust_col1:
 
     nr_of_customers: float = st.slider(label="Base Size", min_value=10000, max_value=800000, value=100000, step=10000)
 
-    customers = generate_customers(nr_of_customers)
+    customers = generate_customers(nr_of_customers, today)
 
     sample_cust = customers[0:8]
     cust_list = list()
@@ -156,7 +160,7 @@ with products_col2:
 
     # Products
     # Alter the spread to make the plot look better
-    x = [0.14, 0.051, 0.48, 0.17, 0.5, 0.5, 0.02, 0.06, 0.05, 0.5, 0.5]
+    x = [0.0, 0.0, 0.0, 0.14, 0.051, 0.48, 0.17, 0.5, 0.5, 0.02, 0.06, 0.05, 0.5, 0.5]
     x = [p + ((marketing_budget - 25) / 100) for p in x]
     y = [p.list_price + (arpu - 2100) for p in products]
     ax.scatter(x, y, alpha=0.5)
@@ -192,7 +196,7 @@ with segment_col1:
 
 with segment_col2:
     hlv_calculator = HlvCalculator()
-    today = date.today()
+
     margins = list()
     for customer in customers:
         margin = hlv_calculator.get_hlv(customer, today)
@@ -334,89 +338,89 @@ with bayesian_col2:
     st.pyplot(fig)
 
 
-def do_simulations(runs_per_policies, sequential_runs, customers, actions,
-                   epsilon, resort_batch_size, initial_trials, initial_conversions, day_count, gold_threshold,
-                   silver_threshold):
-    policies = [randomCrayfish.RandomCrayfish, segmentJunglefowl.SegmentJunglefowl, epsilonRingtail.EpsilonRingtail,
-                bayesianGroundhog.BayesianGroundhog]
-
-    processes = list()
-    output_queue = Queue()
-    for policy_class in policies:
-        for r in range(runs_per_policies):
-            keywords = {'epsilon': epsilon, 'resort_batch_size': resort_batch_size, "initial_trials": initial_trials,
-                        "initial_conversions": initial_conversions, "current_base": customers,
-                        "gold_threshold": gold_threshold, "silver_threshold": silver_threshold}
-            p = Process(target=policy_sim,
-                        args=(policy_class, customers, actions, day_count, output_queue, r, sequential_runs),
-                        kwargs=keywords)
-            processes.append(p)
-
-    for p in processes:
-        p.start()
-
-    all_logs: Dict[str, Dict[datetime, List[float]]] = dict()
-    plot_dict: Dict[str, List[Dict[str, Any]]] = dict()
-    timeline_plot_dict: Dict[str, Dict[datetime, Dict[str, int]]] = dict()
-    for policy_class in policies:
-        policy_name = policy_class.__name__
-        all_logs[policy_name] = dict()
-        plot_dict[policy_name] = list()
-
-    for p in processes:
-        output_logs = output_queue.get(block=True)
-        logs = output_logs["logs"]
-        policy_name = output_logs["policy"]
-        for log in logs:
-            for log_line in log:
-                ts = log_line["ts"]
-                cum_reward = log_line["cumulative_reward"]
-                if ts not in all_logs[policy_name]:
-                    all_logs[policy_name][ts] = list()
-                all_logs[policy_name][ts].append(cum_reward)
-        if "chosen_action_log" in output_logs:
-            # This was a run_id 0 sim
-            timeline_plot_dict[policy_name] = output_logs["chosen_action_log"]
-
-    for p in processes:
-        if p.is_alive():
-            p.join()
-
-    # Timelines
-    xs: Dict[str, List[datetime]] = dict()
-    policy_labels: Dict[str, List[str]] = dict()
-    ys: Dict[str, List[List[float]]] = dict()
-    for policy_name, chosen_action_log in timeline_plot_dict.items():
-        labels: List[str] = list()
-        x: List[datetime] = list(chosen_action_log.keys())
-        x.sort()
-        y_per_action: List[List[float]] = list()
-        for action in actions:
-            y_per_action.append(list())
-            labels.append(action.name)
-        for day in x:
-            chosen_action_counts = chosen_action_log[day]
-            total_chosen_actions_that_day = sum(list(chosen_action_counts.values()))
-            for i in range(len(labels)):
-                action_name = labels[i]
-                if action_name in chosen_action_counts:
-                    y_per_action[i].append(chosen_action_counts[action_name] / total_chosen_actions_that_day)
-                else:
-                    y_per_action[i].append(0)
-        xs[policy_name] = x
-        policy_labels[policy_name] = labels
-        ys[policy_name] = y_per_action
-
-    # Performance
-    plot_dfs: Dict[str, DataFrame] = dict()
-    last_mean_value: Dict[str, float] = dict()
-    for policy, log in all_logs.items():
-        for ts, sim_values in log.items():
-            plot_dict[policy].append({"ts": ts, "mean": np.mean(sim_values), "std": np.std(sim_values)})
-            last_mean_value[policy] = np.mean(sim_values)
-        plot_dfs[policy] = DataFrame(plot_dict[policy])
-
-    return plot_dfs, xs, policy_labels, ys, last_mean_value
+# def do_simulations(runs_per_policies, sequential_runs, customers, actions,
+#                    epsilon, resort_batch_size, initial_trials, initial_conversions, day_count, gold_threshold,
+#                    silver_threshold):
+#     policies = [randomCrayfish.RandomCrayfish, segmentJunglefowl.SegmentJunglefowl, epsilonRingtail.EpsilonRingtail,
+#                 bayesianGroundhog.BayesianGroundhog]
+#
+#     processes = list()
+#     output_queue = Queue()
+#     for policy_class in policies:
+#         for r in range(runs_per_policies):
+#             keywords = {'epsilon': epsilon, 'resort_batch_size': resort_batch_size, "initial_trials": initial_trials,
+#                         "initial_conversions": initial_conversions, "current_base": customers,
+#                         "gold_threshold": gold_threshold, "silver_threshold": silver_threshold}
+#             p = Process(target=policy_sim,
+#                         args=(policy_class, customers, actions, day_count, output_queue, r, sequential_runs),
+#                         kwargs=keywords)
+#             processes.append(p)
+#
+#     for p in processes:
+#         p.start()
+#
+#     all_logs: Dict[str, Dict[datetime, List[float]]] = dict()
+#     plot_dict: Dict[str, List[Dict[str, Any]]] = dict()
+#     timeline_plot_dict: Dict[str, Dict[datetime, Dict[str, int]]] = dict()
+#     for policy_class in policies:
+#         policy_name = policy_class.__name__
+#         all_logs[policy_name] = dict()
+#         plot_dict[policy_name] = list()
+#
+#     for p in processes:
+#         output_logs = output_queue.get(block=True)
+#         logs = output_logs["logs"]
+#         policy_name = output_logs["policy"]
+#         for log in logs:
+#             for log_line in log:
+#                 ts = log_line["ts"]
+#                 cum_reward = log_line["cumulative_reward"]
+#                 if ts not in all_logs[policy_name]:
+#                     all_logs[policy_name][ts] = list()
+#                 all_logs[policy_name][ts].append(cum_reward)
+#         if "chosen_action_log" in output_logs:
+#             # This was a run_id 0 sim
+#             timeline_plot_dict[policy_name] = output_logs["chosen_action_log"]
+#
+#     for p in processes:
+#         if p.is_alive():
+#             p.join()
+#
+#     # Timelines
+#     xs: Dict[str, List[datetime]] = dict()
+#     policy_labels: Dict[str, List[str]] = dict()
+#     ys: Dict[str, List[List[float]]] = dict()
+#     for policy_name, chosen_action_log in timeline_plot_dict.items():
+#         labels: List[str] = list()
+#         x: List[datetime] = list(chosen_action_log.keys())
+#         x.sort()
+#         y_per_action: List[List[float]] = list()
+#         for action in actions:
+#             y_per_action.append(list())
+#             labels.append(action.name)
+#         for day in x:
+#             chosen_action_counts = chosen_action_log[day]
+#             total_chosen_actions_that_day = sum(list(chosen_action_counts.values()))
+#             for i in range(len(labels)):
+#                 action_name = labels[i]
+#                 if action_name in chosen_action_counts:
+#                     y_per_action[i].append(chosen_action_counts[action_name] / total_chosen_actions_that_day)
+#                 else:
+#                     y_per_action[i].append(0)
+#         xs[policy_name] = x
+#         policy_labels[policy_name] = labels
+#         ys[policy_name] = y_per_action
+#
+#     # Performance
+#     plot_dfs: Dict[str, DataFrame] = dict()
+#     last_mean_value: Dict[str, float] = dict()
+#     for policy, log in all_logs.items():
+#         for ts, sim_values in log.items():
+#             plot_dict[policy].append({"ts": ts, "mean": np.mean(sim_values), "std": np.std(sim_values)})
+#             last_mean_value[policy] = np.mean(sim_values)
+#         plot_dfs[policy] = DataFrame(plot_dict[policy])
+#
+#     return plot_dfs, xs, policy_labels, ys, last_mean_value
 
 
 st.write("##")
@@ -446,17 +450,25 @@ if __name__ == '__main__':
         gold_t = gold_threshold
         silver_t = silver_threshold
 
+    chosen_action_logs: Dict[str, Dict[datetime, Dict[str, int]]] = dict()
     with row3_col2:
         if run:
-            plot_dfs, xs, policy_labels, ys, last_mean_value = do_simulations(runs_per_policies, sequential_runs,
-                                                                              customers, actions, epsilon,
-                                                                              resort_batch_size, initial_trials,
-                                                                              initial_wins, day_count, gold_t, silver_t)
-            ordered_policies_by_clv = sorted(last_mean_value, key=last_mean_value.get)
-            ordered_policies_by_clv.reverse()
-            st.pyplot(get_performance_plot(plot_dfs, ordered_policies_by_clv))
+            policies = [randomCrayfish.RandomCrayfish, segmentJunglefowl.SegmentJunglefowl,
+                        epsilonRingtail.EpsilonRingtail,bayesianGroundhog.BayesianGroundhog]
+            keywords = {'epsilon': epsilon, 'resort_batch_size': resort_batch_size, "initial_trials": initial_trials,
+                        "initial_conversions": initial_wins, "current_base": customers,
+                        "gold_threshold": gold_threshold, "silver_threshold": silver_threshold}
+
+            all_logs, chosen_action_logs = do_simulations(policies, keywords, runs_per_policies, sequential_runs,
+                                                          customers,
+                                                          actions, day_count, start_ts)
+
+             # Plot performance
+            st.pyplot(plot_performance(all_logs, show=False, save=False))
+
     with row3_col3:
         if run:
-            for policy_name in policy_labels.keys():
+            plots = plot_timelines(chosen_action_logs, actions, show=False, save=False)
+            for policy_name, fig in plots.items():
                 st.subheader(policy_name)
-                st.pyplot(get_timeline_plot(xs[policy_name], ys[policy_name], policy_name))
+                st.pyplot(fig)
