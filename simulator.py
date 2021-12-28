@@ -1,5 +1,5 @@
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from multiprocessing import Process, Queue
 from random import seed
 from typing import Dict, List, Any, Tuple, Type, Union
@@ -31,17 +31,19 @@ class TelcoSimulator:
         np.random.seed(7837)
         self.call_center_daily_quota = 200
 
-    def get_marketing_history(self, start_ts: datetime = datetime(2011, 1, 1), day_count: int = 365,
+    def get_marketing_history(self, start_ts: datetime = None, day_count: int = 365,
                               nr_of_customers: int = 10000, export: bool = False
                               ) -> Tuple[List[HistoricalActionPropensity], List[Customer], List[Action]]:
         """
         Generates transactions of generated customers using the JungleFowl policy
-        :param start_ts: The date to start simulating a transaction history
+        :param start_ts: The date to start simulating a transaction history, default 1st Jan 2011
         :param day_count: The number of days the generate a history for
         :param nr_of_customers: The number of customers to simulate as starting base
         :param export: True if you would like all the generated data to be exported to the output dir
         :return: Historical transactions, the customers and the list of actions that could have been performed
         """
+        if start_ts is None:
+            start_ts = datetime(2011, 1, 1)
         sim_start_date = start_ts.date()
 
         reward_calculator = RewardCalculator()
@@ -55,19 +57,19 @@ class TelcoSimulator:
         all_customers = generate_customers(nr_of_customers, sim_start_date, product_market_sizes)
         keywords = {"current_base": all_customers}
 
-        all_actions = get_actions()
+        actions = get_actions()
 
-        log, chosen_action_log, historical_action_propensities = self._sim_cycle_run(all_actions, all_customers,
+        log, chosen_action_log, historical_action_propensities = self._sim_cycle_run(actions, all_customers,
                                                                                      day_count,
-                                                                                     segmentJunglefowl.SegmentJunglefowl,
-                                                                                     reward_calculator, [], start_ts,
+                                                                                     segmentJunglefowl.SegmentJunglefowl
+                                                                                     ,reward_calculator, [], start_ts,
                                                                                      **keywords)
         if export:
-            export_history_to_parquet(historical_action_propensities, all_customers, all_actions)
+            export_history_to_parquet(historical_action_propensities, all_customers, actions)
 
-        return historical_action_propensities, all_customers, all_actions
+        return historical_action_propensities, all_customers, actions
 
-    def _policy_sim(self, policy_class, all_customers: List[Customer], all_actions: List[Action], day_count: int,
+    def _policy_sim(self, policy_class, all_customers: List[Customer], actions: List[Action], day_count: int,
                     output: Queue,
                     run_id: int, sequential_runs: int, history: List[HistoricalActionPropensity],
                     start_ts: datetime = datetime.today(), **kwargs) -> bool:
@@ -75,11 +77,12 @@ class TelcoSimulator:
         Run a number of cycles of a policy
         :param policy_class: The policy to run
         :param all_customers: The customers to use during the run
-        :param all_actions: The actions that are allowed to be executed on the customers during the run
+        :param actions: The actions that are allowed to be executed on the customers during the run
         :param day_count: The length of the simulation in days
         :param output: The Queue to output the results to
         :param run_id: The ID of this run
-        :param sequential_runs: The number of sequential cycles to run, used to eliminate waiting time ot start a new thread
+        :param sequential_runs: The number of sequential cycles to run,
+        used to eliminate waiting time ot start a new thread
         :param history: The list of HistoricalActionPropensity to pass to the policy on startup
         :param start_ts: The timestamp to start the simulation at
         :param kwargs: kargs to pass to the policy
@@ -92,14 +95,13 @@ class TelcoSimulator:
 
         logs: List[List[Dict[str, Any]]] = list()
 
-        if run_id == 0:
-            # Only one sim should create a sample offer distribution plot
-            chosen_action_log: Dict[datetime, Dict[str, int]] = dict()
+        # The chosen_action_log of the last sim should create a sample offer distribution plot
+        chosen_action_log: Dict[datetime, Dict[str, int]] = dict()
 
         # We can run multiple sequential runs since there is a time overhead to create new processes
         for s_run in range(sequential_runs):
             # Just overwrite the chosen_action_log and take the last one
-            log, chosen_action_log, _ = self._sim_cycle_run(all_actions, all_customers, day_count,
+            log, chosen_action_log, _ = self._sim_cycle_run(actions, all_customers, day_count,
                                                             policy_class, reward_calculator, history, start_ts,
                                                             **kwargs)
             logs.append(log)
@@ -117,7 +119,7 @@ class TelcoSimulator:
                        reward_calculator: RewardCalculator, history: List[HistoricalActionPropensity],
                        start_ts: datetime = datetime.today(), **kwargs
                        ) -> Tuple[
-        List[Dict[str, Any]], Dict[datetime, Dict[str, int]], List[HistoricalActionPropensity]]:
+        List[Dict[str, Any]], Dict[date, Dict[str, int]], List[HistoricalActionPropensity]]:
         """
         Run a single simulation cycle
         :param all_actions: The actions that can be executed on the customers
@@ -130,24 +132,24 @@ class TelcoSimulator:
         :param kwargs: The kargs to pass to the policy
         :return: log, chosen_action_log, historicalActionPropensities
         """
-        chosen_action_log: Dict[datetime, Dict[str, int]] = dict()
+        chosen_action_log: Dict[date, Dict[str, int]] = dict()
         log: List[Dict[str, Any]] = list()
         customers: List[Customer] = all_customers.copy()
         policy: Policy = policy_class(history, **kwargs)
         policy.set_datetime(start_ts)
         today = start_ts.date()
         actions: List[Action] = list()
-        historicalActionPropensities: List[HistoricalActionPropensity] = history
+        historical_action_propensities: List[HistoricalActionPropensity] = history
         # Since we are simulating implementing this in a company already has customers
         # and has already ran campaigns in the past we initialize teh policy with the actions that are already active
         for action in all_actions:
             # So not today == action.start_date, that is later
             if action.start_date <= today < action.end_date:
-                policy.add_arm(action, [1])
+                policy.add_arm(action, ["basic"])
             elif action.start_date >= today:
                 actions.append(action)
         served_action_propensities: Dict[int, ServedActionPropensity] = dict()
-        action_timeout: Dict[datetime, dict[int, ServedActionPropensity]] = dict()
+        action_timeout: Dict[date, dict[int, ServedActionPropensity]] = dict()
         # Run a simulation of day_count number of days and track the cumulative_reward
         cumulative_reward = 0.0
         for today_datetime in (start_ts + timedelta(n) for n in range(day_count)):
@@ -168,7 +170,7 @@ class TelcoSimulator:
             actions_to_remove = list()
             for action in actions:
                 if today == action.start_date:
-                    policy.add_arm(action, [1])
+                    policy.add_arm(action, ["basic"])
                     actions_to_remove.append(action)
             for action in actions_to_remove:
                 actions.remove(action)
@@ -182,7 +184,7 @@ class TelcoSimulator:
                 customer = customers.pop()
                 # Check if we ave already called them (Data quality)
                 if customer.id not in served_action_propensities:
-                    served_action_propensity = policy.get_next_best_action(customer=customer, segment_ids=[1])
+                    served_action_propensity = policy.get_next_best_action(customer=customer, segment_ids=["basic"])
                     # served_action_propensity can be None if there is no possible action due to constrains
                     if served_action_propensity is not None:
                         todays_served_action_propensities.append(served_action_propensity)
@@ -207,7 +209,7 @@ class TelcoSimulator:
                     policy.add_customer_action(served_action_propensity=served_action_propensity,
                                                customer_action=None,
                                                reward=reward)
-                    historicalActionPropensities.append(
+                    historical_action_propensities.append(
                         HistoricalActionPropensity(customer=served_action_propensity.customer,
                                                    chosen_action=served_action_propensity.chosen_action,
                                                    action_propensities=served_action_propensity.action_propensities,
@@ -235,7 +237,7 @@ class TelcoSimulator:
                         policy.add_customer_action(served_action_propensity=served_action_propensity,
                                                    customer_action=customer_action,
                                                    reward=reward)
-                        historicalActionPropensities.append(
+                        historical_action_propensities.append(
                             HistoricalActionPropensity(customer=served_action_propensity.customer,
                                                        chosen_action=served_action_propensity.chosen_action,
                                                        action_propensities=served_action_propensity.action_propensities,
@@ -273,9 +275,9 @@ class TelcoSimulator:
                 # Accounting now that the call has been made
                 call_counter += 1
                 served_action_propensity.set_action_timestamp(today_datetime)
-                policy.add_company_action(served_action_propensity,
+                policy.add_company_action(served_action_propensity.customer,
                                           served_action_propensity.chosen_action,
-                                          today,
+                                          today_datetime,
                                           get_channel_action_cost(served_action_propensity.chosen_action.channel) * -1)
 
                 # See if we have immediate reward, the customer bought the product during the call
@@ -285,7 +287,7 @@ class TelcoSimulator:
                     policy.add_customer_action(served_action_propensity=served_action_propensity,
                                                customer_action=customer_action,
                                                reward=reward)
-                    historicalActionPropensities.append(
+                    historical_action_propensities.append(
                         HistoricalActionPropensity(customer=served_action_propensity.customer,
                                                    chosen_action=served_action_propensity.chosen_action,
                                                    action_propensities=served_action_propensity.action_propensities,
@@ -306,7 +308,7 @@ class TelcoSimulator:
                 # TODO: implement the possibility that the customer buys the product at a later date within the cooloff
 
             log.append({"ts": today, "cumulative_reward": cumulative_reward})
-        return log, chosen_action_log, historicalActionPropensities
+        return log, chosen_action_log, historical_action_propensities
 
     def plot_timelines(self, chosen_action_logs: Dict[str, Dict[datetime, Dict[str, int]]], actions: List[Action],
                        show=True, save=True
@@ -321,9 +323,7 @@ class TelcoSimulator:
         :return: plots , a dictionary where the policy name is the key and the matplotlib figure is the value
         """
         # Plot policy timelines
-        xs: Dict[str, List[datetime]] = dict()
-        policy_labels: Dict[str, List[str]] = dict()
-        ys: Dict[str, List[List[int]]] = dict()
+        plots: Dict[str, plt.Figure] = dict()
         for policy_name, chosen_action_log in chosen_action_logs.items():
             labels: List[str] = list()
             x: List[datetime] = list(chosen_action_log.keys())
@@ -340,14 +340,10 @@ class TelcoSimulator:
                         y_per_action[i].append(chosen_action_counts[action_name])
                     else:
                         y_per_action[i].append(0)
-            xs[policy_name] = x
-            policy_labels[policy_name] = labels
-            ys[policy_name] = y_per_action
 
-        plots: Dict[str, plt.Figure] = dict()
-        for policy_name in policy_labels.keys():
+
             fig, ax = plt.subplots()
-            ax.stackplot(x, *ys[policy_name])  # , labels=labels)
+            ax.stackplot(x, *y_per_action)  # , labels=labels)
             # plt.legend(loc='upper left')
             ax.set(xlabel='time (days)', ylabel='NBA allocations',
                    title=policy_name)
@@ -370,7 +366,7 @@ class TelcoSimulator:
         """
         plot_dfs: Dict[str, DataFrame] = dict()
         plot_dict: Dict[str, List[Dict[str, Any]]] = dict()
-        last_mean_value: Dict[str, float] = dict()
+        last_mean_value: Dict[str, np.ndarray] = dict()
         for policy, log in all_logs.items():
             if policy not in plot_dict:
                 plot_dict[policy] = list()
@@ -415,14 +411,14 @@ class TelcoSimulator:
             with open(os.path.join(output_dir, policy_name + ".yaml"), "w") as f:
                 f.write(yaml.safe_dump(log))
 
-    def do_simulations(self, policies: List[Type[Union[Any]]], keywords: Dict[str, Any], runs_per_policies: int,
+    def do_simulations(self, policies_to_simulate: List[Type[Union[Any]]], keywords: Dict[str, Any], runs_per_policies: int,
                        sequential_runs: int,
                        customers: List[Customer], actions: List[Action], day_count: int, start_ts: datetime,
-                       historical_action_propensities: List[HistoricalActionPropensity] = list()
+                       historical_action_propensities=None
                        ) -> Tuple[Dict[str, Dict[datetime, List[float]]], Dict[str, Dict[datetime, Dict[str, int]]]]:
         """
         Run a set of simulations of the policies in "policies"
-        :param policies: A list of policies to simulate
+        :param policies_to_simulate: A list of policies to simulate
         :param keywords: A dictionary of kargs to pas to teh policies
         :param runs_per_policies: The number of Threads to start per policy
         :param sequential_runs: The number of sequential runs to do in one Thread
@@ -433,9 +429,11 @@ class TelcoSimulator:
         :param historical_action_propensities: A list of historical transaction the be used to initialize the policies
         :return: all_logs, chosen_action_logs
         """
+        if historical_action_propensities is None:
+            historical_action_propensities = list()
         processes = list()
         output_queue = Queue()
-        for policy_class in policies:
+        for policy_class in policies_to_simulate:
             for r in range(runs_per_policies):
                 p = Process(target=self._policy_sim,
                             args=(policy_class, customers, actions, day_count, output_queue, r, sequential_runs,
@@ -448,7 +446,7 @@ class TelcoSimulator:
 
         all_logs: Dict[str, Dict[datetime, List[float]]] = dict()
         chosen_action_logs: Dict[str, Dict[datetime, Dict[str, int]]] = dict()
-        for policy_class in policies:
+        for policy_class in policies_to_simulate:
             policy_name = policy_class.__name__
             all_logs[policy_name] = dict()
 
@@ -479,30 +477,27 @@ if __name__ == "__main__":
                 epsilonRingtail.EpsilonRingtail]
     # policies = [segmentJunglefowl.SegmentJunglefowl]
 
-    runs_per_policies = 1
-    sequential_runs = 5
+    nr_of_threads_per_policies = 1
+    sequential_runs_per_thread = 5
 
     simulator = TelcoSimulator()
-    historical_action_propensities, _, _ = simulator.get_marketing_history(export=False)
-    start_ts = datetime.today()
-    customers = generate_customers(100000, start_ts.date())
-    actions = get_actions()
-    keywords = {'epsilon': 0.8, 'resort_batch_size': 50, "initial_trials": 99, "initial_conversions": 1,
-                'gold_threshold': None, 'silver_threshold': None, "current_base": customers}
+    generated_historical_action_propensities, _, _ = simulator.get_marketing_history(export=False)
+    start_time_stamp = datetime.today()
+    generated_customers = generate_customers(100000, start_time_stamp.date())
+    all_actions = get_actions()
+    policy_keywords = {'epsilon': 0.8, 'resort_batch_size': 50, "initial_trials": 99, "initial_conversions": 1,
+                       'gold_threshold': None, 'silver_threshold': None, "current_base": generated_customers}
 
-    epsilon = 0.8
-    resort_batch_size = 50
-    initial_trials = 99
-    initial_conversions = 1
-    day_count = 365
-    start_ts = datetime.today()
-    all_logs, chosen_action_logs = simulator.do_simulations(policies, keywords, runs_per_policies, sequential_runs,
-                                                            customers, actions, day_count, start_ts,
-                                                            historical_action_propensities)
+    day_to_simulate = 365
+    out_logs, sample_chosen_action_logs = simulator.do_simulations(policies, policy_keywords,
+                                                                   nr_of_threads_per_policies,
+                                                                   sequential_runs_per_thread, generated_customers,
+                                                                   all_actions, day_to_simulate, start_time_stamp,
+                                                                   generated_historical_action_propensities)
 
-    simulator.export_log_data(all_logs)
+    simulator.export_log_data(out_logs)
 
-    simulator.plot_timelines(chosen_action_logs, actions, show=True, save=True)
+    simulator.plot_timelines(sample_chosen_action_logs, all_actions, show=True, save=True)
 
     # Plot performance
-    simulator.plot_performance(all_logs, show=True, save=True)
+    simulator.plot_performance(out_logs, show=True, save=True)
