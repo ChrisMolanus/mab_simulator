@@ -113,12 +113,11 @@ with products_col1:
     The yearly margins on the products are reasonable for a Dutch Telco but are not the actual margins of Ziggo.
     Adjusting the Average Price per Unit sold (ARPU) changes the list price of the product 
     in proportion the original list price. Since the costs can not change this also changes the margin. 
-    Increasing the Marketing Budget allows for more costly actions like 
-    better graphics which increase campaigns effectiveness,
-    or make outbound calls which require most call center agents.""")
+    Increasing the ATL Marketing Budget allows for better graphics which increases campaigns effectiveness 
+    due to a better brand image.""")
 
     arpu: int = st.slider(label="ARPU €", min_value=100, max_value=3000, value=2100, step=100)
-    marketing_budget: int = st.slider(label="Marketing Budget (Million €)", min_value=18, max_value=50, value=25,
+    marketing_budget: int = st.slider(label="ATL Marketing Budget (Million €)", min_value=18, max_value=50, value=25,
                                       step=1)
 
     prod = list()
@@ -184,9 +183,10 @@ with segment_h_col2:
 segment_col1, segment_col2, segment_col3 = st.columns((2, 1, 1))
 with segment_col1:
     st.write("""The Gold Silver Bronze segments policy uses the traditional marketing segmentation 
-    where we segment the base into High medium and low revenue groups. 
+    where we segment the base into High, Medium and Low revenue groups(Gold, Silver, Bronze respectively). 
     Then for every group we assign actions that try and sell them a product 
-    or service with a price point for that group""")
+    or service with a price point for that group. This policy is meant to give us a baseline 
+    for what a traditional marketing department would do.""")
 
     gold_threshold: float = st.slider(label="Gold Segment", min_value=0.0, max_value=8000.0, value=5600.0, step=200.0)
     silver_threshold: float = st.slider(label="Silver Segment", min_value=0.0, max_value=8000.0, value=2800.0,
