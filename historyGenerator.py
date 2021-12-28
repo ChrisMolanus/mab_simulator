@@ -131,3 +131,6 @@ def export_history_to_parquet(historical_action_propensities: List[HistoricalAct
     transactions.to_parquet(os.path.join(output_dir, "transactions.parquet"), index=False)
     print("Exported transactions.parquet")
     del transactions
+
+if __name__ == "__main__":
+    historical_action_propensities, all_customers, all_actions = get_history(export=True)
