@@ -18,8 +18,7 @@ import segmentJunglefowl
 from actionGenerator import get_actions
 from customerGenerator import generate_customers, get_products
 from rewardCalculator import HlvCalculator
-from simulator import policy_sim, get_performance_plot, get_timeline_plot, do_simulations, plot_timelines, \
-    plot_performance
+from simulator import do_simulations, plot_timelines, plot_performance
 
 st.set_page_config(layout="wide")
 
