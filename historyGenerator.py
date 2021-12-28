@@ -50,6 +50,13 @@ def export_history_to_parquet(historicalActionPropensities: List[HistoricalActio
                               all_customers: List[Customer],
                               all_actions: List[Action],
                               output_dir: str = "output"):
+
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+        print(f"Created {os.path.abspath(output_dir)} directory")
+    else:
+        print(f"Exporting to {os.path.abspath(output_dir)} directory")
+
     # Export customer
     customer_list = list()
     for customer in all_customers:
