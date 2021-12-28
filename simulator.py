@@ -370,7 +370,15 @@ def plot_timelines(chosen_action_logs: Dict[str, Dict[datetime, int]], actions: 
     return plots
 
 
-def plot_performance(all_logs: Dict[str, Dict[datetime, List[float]]], show=False, save=False):
+def plot_performance(all_logs: Dict[str, Dict[datetime, List[float]]], show=False, save=False) -> plt.Figure:
+    """
+    Create plot of the aggregated performance of the policies
+    :param all_logs: The logs of the runs
+    :param show: True
+    :param show: True if the plot should be shown
+    :param save: True if the plot should be saved as test.png
+    :return: fig, the matplotlib figure
+    """
     plot_dfs: Dict[str, DataFrame] = dict()
     plot_dict: Dict[str, List[Dict[str, Any]]] = dict()
     last_mean_value: Dict[str, float] = dict()
@@ -408,8 +416,19 @@ def do_simulations(policies: List[Type[Union[Any]]], keywords: Dict[str, Any], r
                    customers: List[Customer], actions: List[Action], day_count: int, start_ts: datetime,
                    historical_action_propensities: List[HistoricalActionPropensity] = list()
                    ) -> Tuple[Dict[str, Dict[datetime, List[float]]], Dict[str, Dict[datetime, Dict[str, int]]]]:
-
-
+    """
+    Run a set of simulations of the policies in "policies"
+    :param policies: A list of policies to simulate
+    :param keywords: A dictionary of kargs to pas to teh policies
+    :param runs_per_policies: The number of Threads to start per policy
+    :param sequential_runs: The number of sequential runs to do in one Thread
+    :param customers: A list of customers to be used as the starting base
+    :param actions: A list of all actions that can be executed on the customers
+    :param day_count: The number of days to simulate
+    :param start_ts: The starting date of the simulation
+    :param historical_action_propensities: A list of historical transaction the be used to initialize the policies
+    :return: all_logs, chosen_action_logs
+    """
     processes = list()
     output_queue = Queue()
     for policy_class in policies:
