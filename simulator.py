@@ -1,13 +1,13 @@
+import os
 from datetime import datetime, timedelta
+from multiprocessing import Process, Queue
 from random import seed
 from typing import Dict, List, Any, Tuple, Type, Union
-from multiprocessing import Process, Queue
 
-from pandas import DataFrame
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 import yaml
-import os
+from pandas import DataFrame
 
 import bayesianGroundhog
 import epsilonRingtail
@@ -57,15 +57,18 @@ class TelcoSimulator:
 
         all_actions = get_actions()
 
-        log, chosen_action_log, historical_action_propensities = self._sim_cycle_run(all_actions, all_customers, day_count,
-                                                                                segmentJunglefowl.SegmentJunglefowl,
-                                                                                reward_calculator, [], start_ts, **keywords)
+        log, chosen_action_log, historical_action_propensities = self._sim_cycle_run(all_actions, all_customers,
+                                                                                     day_count,
+                                                                                     segmentJunglefowl.SegmentJunglefowl,
+                                                                                     reward_calculator, [], start_ts,
+                                                                                     **keywords)
         if export:
             export_history_to_parquet(historical_action_propensities, all_customers, all_actions)
 
         return historical_action_propensities, all_customers, all_actions
 
-    def _policy_sim(self, policy_class, all_customers: List[Customer], all_actions: List[Action], day_count: int, output: Queue,
+    def _policy_sim(self, policy_class, all_customers: List[Customer], all_actions: List[Action], day_count: int,
+                    output: Queue,
                     run_id: int, sequential_runs: int, history: List[HistoricalActionPropensity],
                     start_ts: datetime = datetime.today(), **kwargs) -> bool:
         """
@@ -97,7 +100,8 @@ class TelcoSimulator:
         for s_run in range(sequential_runs):
             # Just overwrite the chosen_action_log and take the last one
             log, chosen_action_log, _ = self._sim_cycle_run(all_actions, all_customers, day_count,
-                                                       policy_class, reward_calculator, history, start_ts, **kwargs)
+                                                            policy_class, reward_calculator, history, start_ts,
+                                                            **kwargs)
             logs.append(log)
 
         # Only the last chosen_action_log
@@ -108,10 +112,12 @@ class TelcoSimulator:
         print(f"{policy_class.__name__} end")
         return True
 
-    def _sim_cycle_run(self, all_actions: List[Action], all_customers: List[Customer], day_count: int, policy_class: Type,
+    def _sim_cycle_run(self, all_actions: List[Action], all_customers: List[Customer], day_count: int,
+                       policy_class: Type,
                        reward_calculator: RewardCalculator, history: List[HistoricalActionPropensity],
                        start_ts: datetime = datetime.today(), **kwargs
-                       ) -> Tuple[List[Dict[str, Any]], Dict[datetime, Dict[str, int]], List[HistoricalActionPropensity]]:
+                       ) -> Tuple[
+        List[Dict[str, Any]], Dict[datetime, Dict[str, int]], List[HistoricalActionPropensity]]:
         """
         Run a single simulation cycle
         :param all_actions: The actions that can be executed on the customers
@@ -409,7 +415,8 @@ class TelcoSimulator:
             with open(os.path.join(output_dir, policy_name + ".yaml"), "w") as f:
                 f.write(yaml.safe_dump(log))
 
-    def do_simulations(self, policies: List[Type[Union[Any]]], keywords: Dict[str, Any], runs_per_policies: int, sequential_runs: int,
+    def do_simulations(self, policies: List[Type[Union[Any]]], keywords: Dict[str, Any], runs_per_policies: int,
+                       sequential_runs: int,
                        customers: List[Customer], actions: List[Action], day_count: int, start_ts: datetime,
                        historical_action_propensities: List[HistoricalActionPropensity] = list()
                        ) -> Tuple[Dict[str, Dict[datetime, List[float]]], Dict[str, Dict[datetime, Dict[str, int]]]]:
@@ -430,7 +437,6 @@ class TelcoSimulator:
         output_queue = Queue()
         for policy_class in policies:
             for r in range(runs_per_policies):
-
                 p = Process(target=self._policy_sim,
                             args=(policy_class, customers, actions, day_count, output_queue, r, sequential_runs,
                                   historical_action_propensities, start_ts),
@@ -471,7 +477,7 @@ class TelcoSimulator:
 if __name__ == "__main__":
     policies = [randomCrayfish.RandomCrayfish, segmentJunglefowl.SegmentJunglefowl, bayesianGroundhog.BayesianGroundhog,
                 epsilonRingtail.EpsilonRingtail]
-    #policies = [segmentJunglefowl.SegmentJunglefowl]
+    # policies = [segmentJunglefowl.SegmentJunglefowl]
 
     runs_per_policies = 1
     sequential_runs = 5
