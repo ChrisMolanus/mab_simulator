@@ -19,7 +19,7 @@ from customerGenerator import generate_customers, get_products
 from rewardCalculator import HlvCalculator
 from simulator import TelcoSimulator
 
-st.set_page_config(layout="wide")
+st.set_page_config(layout="wide", page_title="Marketing Policy Simulator", )
 
 matplotlib.use("agg")
 
@@ -265,7 +265,8 @@ with bayesian_col1:
     The plots here show the probability density of the conversion rate of three Action at different simulated update 
     steps.
     The Beta distribution of the Action's conversion rate is updated by the simulated success/fail reward steps.
-    Here we can test how quickly the Action Beta distributions (Arms) conclude which action is clearly better (Orange).
+    Here we can test how quickly the Action Beta distributions (Arms) conclude which action is clearly better 
+    (most right peak).
     """)
 
     initial_trials: int = st.slider(label="Initial Trails", min_value=0, max_value=500, value=99, step=1)
@@ -340,8 +341,8 @@ st.write("##")
 st.write("##")
 
 st.subheader("Simulator")
-row3_col1, row3_col2, row3_col3 = st.columns((2, 1, 1))
-with row3_col1:
+sim_col1, sim_col2 = st.columns((2, 2))
+with sim_col1:
     st.write("To run a simulation you must check the checkbox in the bottom of this section. "
              "Depending on the settings a simulation can take up to 30 minutes (10 sequential runs of 356 days)."
              "We recommend using the default settings so that a simulation can finish in 2 minutes. "
@@ -351,10 +352,10 @@ with row3_col1:
 
     # Defaults are optimized for Linux OS, Windows take a long time ot start a Thread so 1 thread per policy
     # and more sequential runs is advised
-    runs_per_policies = st.slider(label="Threads per policy", min_value=1, max_value=10, value=5, step=1)
+    runs_per_policies = st.slider(label="Threads per policy", min_value=1, max_value=10, value=1, step=1)
     sequential_runs = st.slider(label="Sequential runs per thread", min_value=1, max_value=10, value=1, step=1)
     day_count = st.slider(label="Number of days to simulate", min_value=21, max_value=365, value=50, step=1)
-    run = st.checkbox("Run Simulator")
+    run = st.checkbox("Run Simulator", value=True)
 
 if __name__ == '__main__':
     freeze_support()
@@ -367,26 +368,58 @@ if __name__ == '__main__':
 
     simulator = TelcoSimulator()
     chosen_action_logs: Dict[str, Dict[datetime, Dict[str, int]]] = dict()
-    with row3_col2:
-        if run:
-            # Run simulations
-            policies = [randomCrayfish.RandomCrayfish, segmentJunglefowl.SegmentJunglefowl,
-                        epsilonRingtail.EpsilonRingtail, bayesianGroundhog.BayesianGroundhog]
-            keywords = {'epsilon': epsilon, 'resort_batch_size': resort_batch_size, "initial_trials": initial_trials,
-                        "initial_conversions": initial_wins, "current_base": customers,
-                        "gold_threshold": gold_threshold, "silver_threshold": silver_threshold}
 
-            all_logs, chosen_action_logs = simulator.do_simulations(policies, keywords, runs_per_policies,
-                                                                    sequential_runs, customers, actions, day_count,
-                                                                    start_ts)
+    if run:
 
-            # Plot performance
-            st.pyplot(simulator.plot_performance(all_logs, show=False, save=False))
+        # Run simulations
+        policies = [randomCrayfish.RandomCrayfish, segmentJunglefowl.SegmentJunglefowl,
+                    epsilonRingtail.EpsilonRingtail, bayesianGroundhog.BayesianGroundhog]
+        keywords = {'epsilon': epsilon, 'resort_batch_size': resort_batch_size, "initial_trials": initial_trials,
+                    "initial_conversions": initial_wins, "current_base": customers,
+                    "gold_threshold": gold_threshold, "silver_threshold": silver_threshold}
 
-    with row3_col3:
-        if run:
-            # Plot one timeline per policy
-            plots = simulator.plot_timelines(chosen_action_logs, actions, show=False, save=False)
-            for policy_name, fig in plots.items():
-                st.subheader(policy_name)
-                st.pyplot(fig)
+        all_logs, chosen_action_logs = simulator.do_simulations(policies, keywords, runs_per_policies,
+                                                                sequential_runs, customers, actions, day_count,
+                                                                start_ts)
+        # Plot performance
+        sim_col2.pyplot(simulator.plot_performance(all_logs, show=False, save=False))
+
+        st.subheader("Policy Timelines")
+        timeline_col1, timeline_col2, timeline_col3 = st.columns((2, 1, 1))
+        timeline_col1.write("Here we see amount of times the policy chose each action during the simulation "
+                            "where each color represents a action.")
+        timeline_col1.write("")
+        timeline_col1.markdown("**RandomCrayfish**")
+        timeline_col1.write("The timeline displayed what you would exspect when each action is chosen at random."
+                            " Each action is chose about as many times and any other for the duration of the "
+                            "simulation")
+        timeline_col1.write("")
+        timeline_col1.markdown("**SementJunglefolw**")
+        timeline_col1.write("The timeline is very similar to what we see in company data. "
+                            "There are a few big campaigns, and a bit more smaller campaigns with very short runs")
+        timeline_col1.write("")
+        timeline_col1.markdown("**EpsilonRingtail**")
+        timeline_col1.write("The timeline is a bit more complex since it i a learning algorithm. "
+                            "In the first few days the it changes what it thinks is the best campaign a lot "
+                            "as samples are being collected. After some time this starts to stabilize "
+                            "between a few good options that are close to each other in terms of HLV. "
+                            "If the simulation runs long enough it would stabalize even more "
+                            "and stick to one or two campaigns")
+        timeline_col1.write("")
+        timeline_col1.markdown("**BayesianGroundhog**")
+        timeline_col1.write("The timeline of this policy is in some way simpler than the Epsilon Greedy policy. "
+                            "In the beginning the policy will try each campaign more or less equality. "
+                            "At some point it will have enough information that come to a conclusion "
+                            "that one or two campaigns are usually the best.")
+
+        i = 0
+        # Plot one timeline per policy
+        plots = simulator.plot_timelines(chosen_action_logs, actions, show=False, save=False)
+        for policy_name, fig in plots.items():
+            if i % 2 == 0:
+                col = timeline_col2
+            else:
+                col = timeline_col3
+            col.subheader(policy_name)
+            col.pyplot(fig)
+            i += 1
