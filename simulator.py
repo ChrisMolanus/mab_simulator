@@ -5,6 +5,7 @@ from random import seed
 from typing import Dict, List, Any, Tuple, Type, Union
 
 import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 import numpy as np
 import yaml
 from pandas import DataFrame
@@ -346,6 +347,11 @@ class TelcoSimulator:
             fig, ax = plt.subplots()
             ax.stackplot(x, *y_per_action)  # , labels=labels)
             # plt.legend(loc='upper left')
+            # Text in the x axis will be displayed in 'YYYY-mm' format.
+            ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%b'))
+            # Rotates and right-aligns the x labels so they don't crowd each other.
+            for label in ax.get_xticklabels(which='major'):
+                label.set(rotation=30, horizontalalignment='right')
             ax.set(xlabel='time (days)', ylabel='NBA allocations',
                    title=policy_name)
 
@@ -389,8 +395,14 @@ class TelcoSimulator:
             ax.fill_between(policy["ts"], policy["std_l"], policy["std_u"], alpha=0.2)
             ax.plot(policy["ts"], policy["mean_k"], label=f"{policy_name} €{euro}")
 
+        # Text in the x axis will be displayed in 'YYYY-mm' format.
+        ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%b'))
+        # Rotates and right-aligns the x labels so they don't crowd each other.
+        for label in ax.get_xticklabels(which='major'):
+            label.set(rotation=30, horizontalalignment='right')
         ax.set(xlabel='time (days)', ylabel='Cumulative HLV (1000 Euros)',
                title='Policy performance')
+
         ax.grid()
         plt.legend()
 
