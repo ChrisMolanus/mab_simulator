@@ -107,7 +107,10 @@ class Address:
         self.ext = ext
 
     def __str__(self):
-        return f"{self.postcode} {self.house_number} {self.ext}"
+        if self.ext is not None:
+            return f"{self.postcode} {self.house_number} {self.ext}"
+        else:
+            return f"{self.postcode} {self.house_number}"
 
 
 class Customer:
