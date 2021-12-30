@@ -5,30 +5,51 @@ cumulative delta customer lifetime value per policy.
 
 ![Policy revenue timeline](images/test.png)
 
-You can experiment with this simulator using the [public streamlit app](https://share.streamlit.io/chrismolanus/mab_simulator/app.py)
+You can experiment with this simulator using the 
+[public streamlit app](https://share.streamlit.io/chrismolanus/mab_simulator/app.py)
 
 # Current policies
 The current policies implemented are examples of popular algorithms applied to Multi-Arms Bandit problems. 
-This is my no means an exhaustive list, and the implemented policies are not the standard methode you would find on [Wikipedia](https://en.wikipedia.org/wiki/Multi-armed_bandit). 
-Typical implementations you can find online focus on optimizing conversion rate. 
-The implementations here focus on optimizing Delta Customer Lifetime Value
+This is my no means an exhaustive list, and the implemented policies are not the standard methode you would find on 
+[Wikipedia](https://en.wikipedia.org/wiki/Multi-armed_bandit). 
+Typical implementations you can find online focus on optimizing conversion rate or minimizing regret. 
+The implementations here focus on optimizing Delta Customer Lifetime Value 
+since this is easier to explain to a marketeer. The current implemented policies are also only Non-Contextual Bandits. 
+This means they do not take the customer or product data into account. The only exception to this is the 
+"SegmentJunglefowl" policy that was implemented to represent how humans do it now, and we(humans) are usually contextual.
 
 ##SegmentJunglefowl
 This is an implementation that simulates the standard Marketing VIP Gold Silver Bronze segmentation. For simplicity, 
-we only implemented a three tier marketing segmentation
+we only implemented a three tier marketing segmentation. 
 It is intended to be seen as reference for how a marketing department might work 
 if the customer segments and actions where mapped by hand.
 
 ![SegmentJunglefowl timeline](images/SegmentJunglefowl.png)
 
+The policy does a pretty good job at reproducing the type of decisions we typically see in Telco marketing departments.
+We typically see a couple large campaigns(actions) that run for a long time,
+and a few smaller campaigns with smaller segments.
+
 ## EpsilonRingtail
 This is a policy based on the Epsilon greedy methode, which take a Semi-Uniform strategy. 
-Meaning the most profitable campaign for this customer is allocated to the customer 
-except for when a random campaign is taken.
-This implementation optimize for maximum average customer lifetime value(profit) instead of minimizing regret.
-Taking a random campaign every so now and then attempts to give what may seem like sub-optimal campaigns at the time a chance.
+Meaning the most profitable campaign(action) for this customer is allocated to the customer(Exploit) 
+except for when a random campaign(Explorer) is taken.
+This implementation optimize for maximum average customer lifetime value(profit) instead of minimizing "regret" 
+that is use in more academic implementations. This choice was to make it easier for marketeers 
+to understand the reasoning. Taking a random campaign every so now 
+and then attempts to give what may seem like sub-optimal campaigns at the time a chance.
 
 ![EpsilonRingtail timeline](images/EpsilonRingtail.png)
+
+Because the policy tends to pick only one campaign(action) as the exploit action 
+and allocates it to customers "Epsilon" percent of the time, we see that the policy may swap between two actions 
+that have a close reward value and pretty much ignore the rest. This policy is usually best suited for companies 
+that tend to run short campaigns because the market they are in requires them to change often. 
+One of the problems that may occur with this policy is that by change an action got a string of good reward 
+in the beginning and the policy then starting using it as the Exploit. 
+This will result in the other actions not getting enough samples to demonstrate they are better, 
+and the policy will get stuck in a local minimum for too long. However, if the company mainly runs shorter campaigns 
+a policy like this can quickly find "an" optimum instead of exploring too much which results in lower revenues.
 
 ## BayesianGroundhog
 This is a policy based on Thomson sampling from a Beta distribution of product convert rates.
@@ -38,10 +59,17 @@ The algorithm then chooses the action with the maximum expected customer lifetim
 
 ![BayesianGroundhog timeline](images/BayesianGroundhog.png)
 
+This policy may take longer than the Epsilon Greedy policy to decide on an optimum 
+but typically has a better chance of finding a global optimum. For this reason it performers better in companies that can
+have long-running campaigns since ones it finds the optimum it can maximize revenue by using it. 
+It is less likely than the Epsilon Greedy policy to get stuck in a local optimum 
+so over the long term will produce higher revenues.
+
 ## RandomCrayfish
-This is simply a reference policy that pick a random action.
+This is simply a reference policy that pick a random action. This should be the worst possible policy.
 
 ![RandomCrayfish timeline](images/RandomCrayfish.png)
+
 
 # Installation
 Clone the repository to a local directory
