@@ -1,9 +1,11 @@
 # A marketing campaign management policy simulator.
 This application simulates the implementation of candidate Policies in a Telecommunications company.
 The application allows multiple policies to run in parallel over the same customer base to provide the likely 
-cumulative delta customer lifetime value per policy
+cumulative delta customer lifetime value per policy.
 
 ![Policy revenue timeline](images/test.png)
+
+You can experiment with this simulator using the [public streamlit app](https://share.streamlit.io/chrismolanus/mab_simulator/app.py)
 
 # Current policies
 The current policies implemented are examples of popular algorithms applied to Multi-Arms Bandit problems. 
