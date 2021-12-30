@@ -14,7 +14,19 @@ This is my no means an exhaustive list, and the implemented policies are not the
 [Wikipedia](https://en.wikipedia.org/wiki/Multi-armed_bandit). 
 Typical implementations you can find online focus on optimizing conversion rate or minimizing regret. 
 The implementations here focus on optimizing Delta Customer Lifetime Value 
-since this is easier to explain to a marketeer. The current implemented policies are also only Non-Contextual Bandits. 
+since this is easier to explain to a marketeer. Delta Customer Lifetime Value would be the difference in the customer's 
+Lifetime-Value before and after the marketing action has had its effect. 
+But since we are dealing with a telecommunications company here we have to consider that a customer(person) 
+can be living in a household that can have only one internet connection. 
+So the value of that contract is shared across the members o that household. 
+This is why here we usually refer to the Household Lifetime Value(HLV). This business model is mentioned in the PhD Thesis 
+of Jan Markendahl 
+[Mobile Network Operators and Cooperation](https://www.impgroup.org/uploads/dissertations/dissertion_53.pdf) 
+and is widely used by telecommunications companies. A more recent article published by Rebecca Scully 
+[How a Modern Approach to Householding Unlocks Better Segments & Campaign Optimization](https://amperity.com/blog/how-a-modern-approach-to-householding-unlocks-better-segments-campaign-optimization)
+explains it a bit more. I have never used their services, I just like the way the post explains HLV.
+
+The current implemented policies are also only Non-Contextual Bandits. 
 This means they do not take the customer or product data into account. The only exception to this is the 
 "SegmentJunglefowl" policy that was implemented to represent how humans do it now, and we(humans) are usually contextual.
 
