@@ -390,24 +390,31 @@ if __name__ == '__main__':
                             "where each color represents a action.")
         timeline_col1.write("")
         timeline_col1.markdown("**RandomCrayfish**")
-        timeline_col1.write("The timeline displayed what you would exspect when each action is chosen at random."
+        timeline_col1.write("The policy is meant to be a reference for the worst possible rational policy "
+                            "where an action is chosen at random."
+                            "The timeline displayed what you would expect when each action is chosen at random."
                             " Each action is chose about as many times and any other for the duration of the "
                             "simulation")
         timeline_col1.write("")
         timeline_col1.markdown("**SementJunglefolw**")
-        timeline_col1.write("The timeline is very similar to what we see in company data. "
+        timeline_col1.write("This is an implementation of a Gold, Silver, Bronze based marketing strategy. "
+                            "The timeline is very similar to what we see in company data. "
                             "There are a few big campaigns, and a bit more smaller campaigns with very short runs")
         timeline_col1.write("")
         timeline_col1.markdown("**EpsilonRingtail**")
-        timeline_col1.write("The timeline is a bit more complex since it i a learning algorithm. "
+        timeline_col1.write("This is an implementation of a Epsilon Greedy policy "
+                            "that does not consider the customer or product context."
+                            "The timeline is a bit more complex since it i a learning algorithm "
+                            "based on maximizing Household lifetime value. "
                             "In the first few days the it changes what it thinks is the best campaign a lot "
                             "as samples are being collected. After some time this starts to stabilize "
                             "between a few good options that are close to each other in terms of HLV. "
-                            "If the simulation runs long enough it would stabalize even more "
+                            "If the simulation runs long enough it would stabilize even more "
                             "and stick to one or two campaigns")
         timeline_col1.write("")
         timeline_col1.markdown("**BayesianGroundhog**")
-        timeline_col1.write("The timeline of this policy is in some way simpler than the Epsilon Greedy policy. "
+        timeline_col1.write("This is an implementation of a Baysian Bandit or Thompson sampling. "
+                            "The timeline of this policy is in some way simpler than the Epsilon Greedy policy. "
                             "In the beginning the policy will try each campaign more or less equality. "
                             "At some point it will have enough information that come to a conclusion "
                             "that one or two campaigns are usually the best.")

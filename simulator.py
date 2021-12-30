@@ -488,7 +488,6 @@ class TelcoSimulator:
 if __name__ == "__main__":
     policies = [randomCrayfish.RandomCrayfish, segmentJunglefowl.SegmentJunglefowl, bayesianGroundhog.BayesianGroundhog,
                 epsilonRingtail.EpsilonRingtail]
-    # policies = [segmentJunglefowl.SegmentJunglefowl]
 
     nr_of_threads_per_policies = 1
     sequential_runs_per_thread = 5
