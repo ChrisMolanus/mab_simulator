@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, date
+from string import ascii_letters, digits, ascii_uppercase
 import random
 from typing import Dict, List, Tuple
 
@@ -73,17 +74,45 @@ def generate_customers(nr_of_customers: int, sim_start_date: date, product_marke
     :param product_market_sizes: The relative size of the number of customers with a product
     :return: List[Customer]
     """
+    # Create letter list for postcodes
+    postcode_letters = list(ascii_uppercase)
+
+    # Generate address extensions
+    ext_list = generate_exts(nr_of_customers)
+
+    # Generate random portfolios according to the market distribution in the products CSV file
     portfolios = generate_portfolios(nr_of_customers, sim_start_date, product_market_sizes)
+
+    # Generate random Dutch names
     names = generate_names(nr_of_customers)
+
+    # Generate Customer objects
     customers: List[Customer] = list()
     for i in range(nr_of_customers):
-        fake_address = Address(postcode=f"123{i}AB", house_number=i, ext=None)
+        # Generate random Netherlands postcode
+        postcode_6 = str(random.randint(1000, 9999)) + random.choice(postcode_letters) + random.choice(postcode_letters)
+        fake_address = Address(postcode=postcode_6, house_number=random.randint(1, 100), ext=ext_list[i])
         customers.append(Customer(id=i,
                                   name=f"{names[i]['lastname']}, {names[i]['firstname']}",
-                                  dob=(datetime.today() - timedelta(days=random.randint(6570, 15000))).date(),
+                                  # dob must be more than 18 years ago 18 x 365 = 6570
+                                  dob=sim_start_date - timedelta(days=random.randint(6570, 15000)),
                                   billing_address=fake_address,
                                   portfolio=portfolios[i], ))
     return customers
+
+
+def generate_exts(nr_of_customers) -> np.ndarray:
+    """
+    Generates a random address extension where most of the time it is None
+    :param nr_of_customers: The number of extensions to generate
+    :return: a list of extensions
+    """
+    # Create probability list for ext on address (75% chance of None)
+    ext_list = [None] + list(ascii_letters) + list(digits) + ['apt1', 'ext1']
+    p_ext = [0.25 / (len(ext_list) - 1)] * len(ext_list)
+    p_ext[0] = 0.75
+    ext2 = np.random.choice(ext_list, nr_of_customers, p=p_ext)
+    return ext2
 
 
 def generate_names(nr_of_customers) -> List[Dict[str, str]]:
