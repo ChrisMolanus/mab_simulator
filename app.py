@@ -64,7 +64,7 @@ with cust_col1:
         cust_list.append({  # "id": c.id,
             "name": c.name,
             "dob": c.dob,
-            "billing_address": str(c.billing_address),
+            "billing_address": c.billing_address.__str__(),
             "portfolio": str([str(p) for p in c.portfolio])})
     cust_df = pd.DataFrame(cust_list)
     st.dataframe(cust_df)
