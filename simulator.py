@@ -1,4 +1,5 @@
 import os
+import random
 from datetime import datetime, timedelta, date
 from multiprocessing import Process, Queue
 from random import seed
@@ -8,7 +9,12 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import numpy as np
 import yaml
+from bokeh.models import LinearColorMapper
 from pandas import DataFrame
+
+from bokeh.palettes import brewer, Inferno256, Turbo256, Category20
+from bokeh.plotting import figure, show
+from bokeh.io import export_svg
 
 import bayesianGroundhog
 import epsilonRingtail
@@ -312,6 +318,61 @@ class TelcoSimulator:
             log.append({"ts": today, "cumulative_reward": cumulative_reward})
         return log, chosen_action_log, historical_action_propensities
 
+    def plot_timelines_bokeh(self, chosen_action_logs: Dict[str, Dict[datetime, Dict[str, int]]], actions: List[Action],
+                             show_plot=True
+                             ) -> Dict[str, plt.Figure]:
+        """
+        Create plots for the timelines of the policies
+        :param chosen_action_logs: The Chosen Action Logs of the policies where the policy name is the key,
+        and the value is the number of times an action was chosen on that date were the action name is the key
+        :param actions: A list of all actions so we can know which are never chosen
+        :param show_plot: True if the plots should be shown
+        :return: plots , a dictionary where the policy name is the key and the matplotlib figure is the value
+        """
+        plots: Dict[str, plt.Figure] = dict()
+        for policy_name, chosen_action_log in chosen_action_logs.items():
+            labels: List[str] = list()
+            x: List[datetime] = list(chosen_action_log.keys())
+            x.sort()
+            y_per_action: List[List[int]] = list()
+            for action in actions:
+                y_per_action.append(list())
+                labels.append(action.name)
+            for day in x:
+                chosen_action_counts = chosen_action_log[day]
+                for i in range(len(labels)):
+                    action_name = labels[i]
+                    if action_name in chosen_action_counts:
+                        y_per_action[i].append(chosen_action_counts[action_name])
+                    else:
+                        y_per_action[i].append(0)
+
+
+            df = DataFrame(y_per_action)
+            df = df.transpose()
+            df = df.add_prefix("action_")
+            #df.columns = labels
+            df.index = x
+
+            f = int(np.floor(256 / len(labels)))
+            palette = [Turbo256[i * f] for i in range(0, len(labels))]
+            random.shuffle(palette)
+            #palette = [Category20[i % 20] for i in range(0, len(labels))]
+
+
+            #p = figure(x_range=(0, len(df) - 1), y_range=(0, 200))
+            p = figure(x_axis_type='datetime')
+            #p.grid.minor_grid_line_color = '#eeeeee'
+
+            p.varea_stack(stackers=df.columns.values, x='index', color=palette, source=df)
+
+            plots[policy_name] = p
+
+            if show_plot:
+                show(p)
+
+        return plots
+
     def plot_timelines(self, chosen_action_logs: Dict[str, Dict[datetime, Dict[str, int]]], actions: List[Action],
                        show=True, save=True
                        ) -> Dict[str, plt.Figure]:
@@ -486,11 +547,12 @@ class TelcoSimulator:
 
 
 if __name__ == "__main__":
-    policies = [randomCrayfish.RandomCrayfish, segmentJunglefowl.SegmentJunglefowl, bayesianGroundhog.BayesianGroundhog,
-                epsilonRingtail.EpsilonRingtail]
+    # policies = [randomCrayfish.RandomCrayfish, segmentJunglefowl.SegmentJunglefowl, bayesianGroundhog.BayesianGroundhog,
+    #             epsilonRingtail.EpsilonRingtail]
+    policies = [randomCrayfish.RandomCrayfish]
 
     nr_of_threads_per_policies = 1
-    sequential_runs_per_thread = 5
+    sequential_runs_per_thread = 1
 
     simulator = TelcoSimulator()
     generated_historical_action_propensities, _, _ = simulator.get_marketing_history(export=False)
@@ -510,6 +572,7 @@ if __name__ == "__main__":
     simulator.export_log_data(out_logs)
 
     simulator.plot_timelines(sample_chosen_action_logs, all_actions, show=True, save=True)
+    #simulator.plot_timelines_bokeh(sample_chosen_action_logs, all_actions, show_plot=True)
 
     # Plot performance
     simulator.plot_performance(out_logs, show=True, save=True)

@@ -352,7 +352,7 @@ with sim_col1:
 
     # Defaults are optimized for Linux OS, Windows take a long time ot start a Thread so 1 thread per policy
     # and more sequential runs is advised
-    runs_per_policies = st.slider(label="Threads per policy", min_value=1, max_value=10, value=5, step=1)
+    runs_per_policies = st.slider(label="Threads per policy", min_value=1, max_value=10, value=1, step=1)
     sequential_runs = st.slider(label="Sequential runs per thread", min_value=1, max_value=10, value=1, step=1)
     day_count = st.slider(label="Number of days to simulate", min_value=21, max_value=365, value=50, step=1)
     run = st.checkbox("Run Simulator", value=True)
@@ -421,6 +421,7 @@ if __name__ == '__main__':
 
         i = 0
         # Plot one timeline per policy
+        #plots = simulator.plot_timelines_bokeh(chosen_action_logs, actions, show_plot=False)
         plots = simulator.plot_timelines(chosen_action_logs, actions, show=False, save=False)
         for policy_name, fig in plots.items():
             if i % 2 == 0:
@@ -428,5 +429,5 @@ if __name__ == '__main__':
             else:
                 col = timeline_col3
             col.subheader(policy_name)
-            col.pyplot(fig)
+            col.bokeh_chart(fig)
             i += 1
