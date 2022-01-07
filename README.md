@@ -30,7 +30,7 @@ The current implemented policies are also only Non-Contextual Bandits.
 This means they do not take the customer or product data into account. The only exception to this is the 
 "SegmentJunglefowl" policy that was implemented to represent how humans do it now, and we(humans) are usually contextual.
 
-##SegmentJunglefowl
+## SegmentJunglefowl
 This is an implementation that simulates the standard Marketing VIP Gold Silver Bronze segmentation. For simplicity, 
 we only implemented a three tier marketing segmentation. 
 It is intended to be seen as reference for how a marketing department might work 
@@ -45,7 +45,7 @@ and a few smaller campaigns with smaller segments.
 ## EpsilonRingtail
 This is a policy based on the Epsilon greedy methode, which take a Semi-Uniform strategy. 
 Meaning the most profitable campaign(action) for this customer is allocated to the customer(Exploit) 
-except for when a random campaign(Explorer) is taken.
+the majority of the time, and a random campaign(Explorer) the rest of the time.
 This implementation optimize for maximum average customer lifetime value(profit) instead of minimizing "regret" 
 that is use in more academic implementations. This choice was to make it easier for marketeers 
 to understand the reasoning. Taking a random campaign every so now 
@@ -57,11 +57,12 @@ Because the policy tends to pick only one campaign(action) as the exploit action
 and allocates it to customers "Epsilon" percent of the time, we see that the policy may swap between two actions 
 that have a close reward value and pretty much ignore the rest. This policy is usually best suited for companies 
 that tend to run short campaigns because the market they are in requires them to change often. 
-One of the problems that may occur with this policy is that by change an action got a string of good reward 
-in the beginning and the policy then starting using it as the Exploit. 
-This will result in the other actions not getting enough samples to demonstrate they are better, 
-and the policy will get stuck in a local minimum for too long. However, if the company mainly runs shorter campaigns 
-a policy like this can quickly find "an" optimum instead of exploring too much which results in lower revenues.
+One of the problems that may occur with this policy is that if by chance an action got a string of good reward 
+in the beginning, the policy then starting using it as the Exploit while it might not be a global optimum. 
+Because this action is taken most of the time it will result in the other actions not getting enough samples 
+to demonstrate they are better, and the policy will get stuck in a local minimum for too long. However, 
+if the company mainly runs shorter campaigns a policy like this can quickly find "an" optimum 
+instead of exploring too much which results in lower revenues.
 
 ## BayesianGroundhog
 This is a policy based on Thomson sampling from a Beta distribution of product convert rates.
