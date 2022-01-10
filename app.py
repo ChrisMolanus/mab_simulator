@@ -386,26 +386,26 @@ if __name__ == '__main__':
 
         st.subheader("Policy Timelines")
         timeline_col1, timeline_col2, timeline_col3 = st.columns((2, 1, 1))
-        timeline_col1.write("Here we see amount of times the policy chose each action during the simulation "
-                            "where each color represents a action.")
+        timeline_col1.write("Here we see amount of times the policy chooses each action during the simulation "
+                            "where each color represents an action.")
         timeline_col1.write("")
         timeline_col1.markdown("**RandomCrayfish**")
-        timeline_col1.write("The policy is meant to be a reference for the worst possible rational policy "
-                            "where an action is chosen at random."
-                            "The timeline displayed what you would expect when each action is chosen at random."
-                            " Each action is chose about as many times and any other for the duration of the "
+        timeline_col1.write("The RandomCrayfish policy is meant to be a reference for the worst possible rational "
+                            "policy where an action is chosen at random."
+                            "The timeline displayed what you would expect from this, in that,"
+                            " each action is chose about as many times and any other for the duration of the "
                             "simulation")
         timeline_col1.write("")
         timeline_col1.markdown("**SementJunglefolw**")
         timeline_col1.write("This is an implementation of a Gold, Silver, Bronze based marketing strategy. "
                             "The timeline is very similar to what we see in company data. "
-                            "There are a few big campaigns, and a bit more smaller campaigns with very short runs")
+                            "There are a few big campaigns, and a some smaller campaigns with very short runs")
         timeline_col1.write("")
         timeline_col1.markdown("**EpsilonRingtail**")
         timeline_col1.write("This is an implementation of a Epsilon Greedy policy "
                             "that does not consider the customer or product context."
-                            "The timeline is a bit more complex since it i a learning algorithm "
-                            "based on maximizing Household lifetime value. "
+                            "The timeline is a bit more complex since it is a learning algorithm "
+                            "based on maximizing Delta Household lifetime value. "
                             "In the first few days the it changes what it thinks is the best campaign a lot "
                             "as samples are being collected. After some time this starts to stabilize "
                             "between a few good options that are close to each other in terms of HLV. "

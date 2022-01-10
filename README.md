@@ -32,7 +32,9 @@ This means they do not take the customer or product data into account. The only 
 
 ## SegmentJunglefowl
 This is an implementation that simulates the standard Marketing VIP Gold Silver Bronze segmentation. For simplicity, 
-we only implemented a three tier marketing segmentation. 
+we only implemented a three tier marketing segmentation.
+![SegmentJunglefowl buckets](images/SegmentJunglefowl_buckets.png)
+
 It is intended to be seen as reference for how a marketing department might work 
 if the customer segments and actions where mapped by hand.
 
@@ -46,6 +48,8 @@ and a few smaller campaigns with smaller segments.
 This is a policy based on the Epsilon greedy methode, which take a Semi-Uniform strategy. 
 Meaning the most profitable campaign(action) for this customer is allocated to the customer(Exploit) 
 the majority of the time, and a random campaign(Explorer) the rest of the time.
+![EpsilonRingtail distribution](images/EpsilonRingtail_distribution.png)
+
 This implementation optimize for maximum average customer lifetime value(profit) instead of minimizing "regret" 
 that is use in more academic implementations. This choice was to make it easier for marketeers 
 to understand the reasoning. Taking a random campaign every so now 
@@ -66,9 +70,23 @@ instead of exploring too much which results in lower revenues.
 
 ## BayesianGroundhog
 This is a policy based on Thomson sampling from a Beta distribution of product convert rates.
-And the sampled conversion rate is then multiples by the average customer lifetime value(reward)
-to get the Expected customer lifetime value of the campaign(action).
-The algorithm then chooses the action with the maximum expected customer lifetime value.
+The sampled conversion rate is then multiples by the average customer lifetime value(reward)
+to get the Expected-HLV of the campaign(action).
+This is a complicated way of saying that we modeled the Expected-HLV of a campaign 
+as a Beta distribution. With very little win/loss samples the distribution is wide, uncertain what the Expected HLV is. 
+The algorithm then samples from this Expected-HLV distributions(one Distribution per campaign) when it is trying to 
+determine the best campaign to assign to the customer. Because we are sampling from a distribution the Expected HLV 
+is always a slightly different value(within the beta distribution) but of course more often around the mean. 
+This is where the variability of "The Best Campaign" comes from. 
+When we have enough win/loss data from a campaign the beta distribution becomes very narrow and therefore more certain 
+what the Expected-HLV of the campaign is. 
+![BayesianGroundhog Steps](images/BayesianGroundhog_steps.png)
+
+Now the point is not to discover what the true Expected HLV of the campaigns are 
+but to optimize returns(Euros) as soon as possible.
+This is why the algorithm then chooses the action with the maximum Expected-HLV from the samples for that customer. 
+This is where campaigns that have a narrower distribution will more often return the highest value, 
+and the distribution that have the highest mean will more often be chosen to be the winner(maximum Expected-HLV).
 
 ![BayesianGroundhog timeline](images/BayesianGroundhog.png)
 
@@ -112,6 +130,8 @@ python simulator.py
 streamlit run app.py
 ```
 ![Dashboard screen shot](images/dashboard_screenshot.png)
+
+Or you can try it out  here: [Hosted App](https://share.streamlit.io/chrismolanus/mab_simulator/app.py)
 
 # Making your own Policy
 First create a new package folder in the root of the repository. 
