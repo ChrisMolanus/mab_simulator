@@ -10,48 +10,68 @@ class EmailTemplate1(Template):
     def __init__(self, name: str, channel: Channel, icon: str):
         super().__init__(name, channel, icon)
 
-    def render(self, subjectline: str, product: str,  **kwargs) -> str:
-        return f"""Subject line: {subjectline}
-        Body: Buy this awesome {product}
-        """
+    def render(self, **kwargs) -> str:
+        if "product" not in kwargs:
+            product = "{product}"
+        else:
+            product = kwargs["product"]
+        if "subjectline" not in kwargs:
+            subjectline = "{subjectline}"
+        else:
+            subjectline = kwargs["subjectline"]
+        return f"""Subject line: {subjectline} Body: Buy this awesome {product}"""
 
     def __str__(self):
-        return self.render(subjectline="{Subject Line}", product="{Product}")
+        return self.render()#self.render(subjectline="{Subject Line}", product="{Product}")
 
 
 class EmailTemplate2(Template):
     def __init__(self, name: str, channel: Channel, icon: str):
         super().__init__(name, channel, icon)
 
-    def render(self, subjectline: str, product: str,  **kwargs) -> str:
-        return f"""Subject line: {subjectline}
-        Body: For a limited time you can buy a {product}
-        """
+    def render(self, **kwargs) -> str:
+        if "product" not in kwargs:
+            product = "{product}"
+        else:
+            product = kwargs["product"]
+        if "subjectline" not in kwargs:
+            subjectline = "{subjectline}"
+        else:
+            subjectline = kwargs["subjectline"]
+        return f"""Subject line: {subjectline} Body: For a limited time you can buy a {product}"""
 
     def __str__(self):
-        return self.render(subjectline="{Subject Line}", product="{Product}")
+        return self.render()#self.render(subjectline="{Subject Line}", product="{Product}")
 
 
 class AdviceTemplate1(Template):
     def __init__(self, name: str, channel: Channel, icon: str):
         super().__init__(name, channel, icon)
 
-    def render(self, product: str, **kwargs):
+    def render(self, **kwargs) -> str:
+        if "product" not in kwargs:
+            product = "{product}"
+        else:
+            product = kwargs["product"]
         return f"""Offer customer {product}"""
 
     def __str__(self):
-        return self.render(product="{product}")
+        return self.render()#self.render(product="{product}")
 
 
 class AdviceTemplate2(Template):
     def __init__(self, name: str, channel: Channel, icon: str):
         super().__init__(name, channel, icon)
 
-    def render(self, product: str, **kwargs):
+    def render(self, **kwargs) -> str:
+        if "product" not in kwargs:
+            product = "{product}"
+        else:
+            product = kwargs["product"]
         return f"""Because they have been our customer for more that two years offer them {product}"""
 
     def __str__(self):
-        return self.render(product="{product}")
+        return self.render()#self.render(product="{product}")
 
 
 templates: Dict[Channel, List[Template]] = {

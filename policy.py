@@ -202,8 +202,8 @@ class Content:
         for key, value in self.kwargs.items():
             print(f"{key} {value}")
 
-    def render(self, **kwargs):
-        return self.template.render(**kwargs)
+    def render(self):
+        return self.template.render(**self.kwargs)
 
 
 class Action:
