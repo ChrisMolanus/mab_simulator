@@ -530,7 +530,7 @@ if __name__ == "__main__":
     if dump_to_csv:
         actions_df, offers_products_df = actions_to_dataframe(all_actions)
         actions_df.to_csv("output/actions.csv", index=False)
-    offers_products_df.to_csv("output/offers_products.csv", index=False)
+        offers_products_df.to_csv("output/offers_products.csv", index=False)
 
     policy_keywords = {'epsilon': 0.8, 'resort_batch_size': 50, "initial_trials": 99, "initial_conversions": 1,
                        'gold_threshold': None, 'silver_threshold': None, "current_base": generated_customers}
