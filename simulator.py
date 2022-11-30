@@ -1,4 +1,5 @@
 import os
+import sys
 from datetime import datetime, timedelta, date
 from multiprocessing import Process, Queue
 from random import seed
@@ -7,6 +8,7 @@ from typing import Dict, List, Any, Tuple, Type, Union
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import numpy as np
+import pandas as pd
 import yaml
 from pandas import DataFrame
 
@@ -18,7 +20,7 @@ from actionGenerator import get_actions
 from customerGenerator import generate_customers, what_would_a_customer_do, get_products
 from exportHistory import export_history_to_parquet
 from policy import ServedActionPropensity, Policy, Customer, Channel, Action, Transaction, HistoricalActionPropensity, \
-    get_channel_action_cost
+    get_channel_action_cost, customers_to_dataframe, actions_to_dataframe
 from rewardCalculator import RewardCalculator
 
 
@@ -74,7 +76,7 @@ class TelcoSimulator:
     def _policy_sim(self, policy_class, all_customers: List[Customer], actions: List[Action], day_count: int,
                     output: Queue,
                     run_id: int, sequential_runs: int, history: List[HistoricalActionPropensity],
-                    start_ts: datetime = datetime.today(), **kwargs) -> bool:
+                    start_ts: datetime = datetime.today(), dump_log_to_csv: bool = False, **kwargs) -> bool:
         """
         Run a number of cycles of a policy
         :param policy_class: The policy to run
@@ -87,6 +89,7 @@ class TelcoSimulator:
         used to eliminate waiting time ot start a new thread
         :param history: The list of HistoricalActionPropensity to pass to the policy on startup
         :param start_ts: The timestamp to start the simulation at
+        :param dump_log_to_csv: True is log of first sim should be dumped to a CVS file
         :param kwargs: kargs to pass to the policy
         :return:
         """
@@ -103,7 +106,7 @@ class TelcoSimulator:
         # We can run multiple sequential runs since there is a time overhead to create new processes
         for s_run in range(sequential_runs):
             # Just overwrite the chosen_action_log and take the last one
-            log, chosen_action_log, _ = self._sim_cycle_run(actions, all_customers, day_count,
+            log, chosen_action_log, action_dump = self._sim_cycle_run(actions, all_customers, day_count,
                                                             policy_class, reward_calculator, history, start_ts,
                                                             **kwargs)
             logs.append(log)
@@ -111,6 +114,18 @@ class TelcoSimulator:
         # Only the last chosen_action_log
         if run_id == 0:
             output.put({"policy": policy_class.__name__, "logs": logs, "chosen_action_log": chosen_action_log})
+            if dump_log_to_csv:
+                logfileList: List[dict] = list()
+                for haps in action_dump:
+                    logfileList.append({
+                        "action_ts": haps.action_ts,
+                        "customer_id": haps.customer.id,
+                        "chosen_action.name": haps.chosen_action.name,
+                        "reward_ts": haps.reward_ts,
+                        "reward": haps.reward
+                    })
+                df = pd.DataFrame(logfileList)
+                df.to_csv("output/nba_log.csv", index=False)
         else:
             output.put({"policy": policy_class.__name__, "logs": logs})
         print(f"{policy_class.__name__} end")
@@ -450,7 +465,7 @@ class TelcoSimulator:
             for r in range(runs_per_policies):
                 p = Process(target=self._policy_sim,
                             args=(policy_class, customers, actions, day_count, output_queue, r, sequential_runs,
-                                  historical_action_propensities, start_ts),
+                                  historical_action_propensities, start_ts, dump_to_csv),
                             kwargs=keywords)
                 processes.append(p)
 
@@ -495,15 +510,28 @@ if __name__ == "__main__":
 
     policies = [randomCrayfish.RandomCrayfish, segmentJunglefowl.SegmentJunglefowl, bayesianGroundhog.BayesianGroundhog,
                 epsilonRingtail.EpsilonRingtail]
+    policies = [segmentJunglefowl.SegmentJunglefowl]
 
     nr_of_threads_per_policies = 1
-    sequential_runs_per_thread = 5
+    sequential_runs_per_thread = 1
 
     simulator = TelcoSimulator()
-    generated_historical_action_propensities, _, _ = simulator.get_marketing_history(export=False)
+    #generated_historical_action_propensities, _, _ = simulator.get_marketing_history(export=False)
+    generated_historical_action_propensities = list()
     start_time_stamp = datetime.today()
+
     generated_customers = generate_customers(100000, start_time_stamp.date())
+    customer_df, portfolios_df = customers_to_dataframe(generated_customers)
+    if dump_to_csv:
+        customer_df.to_csv("output/customers.csv", index=False)
+        portfolios_df.to_csv("output/portfolios.csv", index=False)
+
     all_actions = get_actions()
+    if dump_to_csv:
+        actions_df, offers_products_df = actions_to_dataframe(all_actions)
+        actions_df.to_csv("output/actions.csv", index=False)
+    offers_products_df.to_csv("output/offers_products.csv", index=False)
+
     policy_keywords = {'epsilon': 0.8, 'resort_batch_size': 50, "initial_trials": 99, "initial_conversions": 1,
                        'gold_threshold': None, 'silver_threshold': None, "current_base": generated_customers}
 
@@ -520,3 +548,7 @@ if __name__ == "__main__":
 
     # Plot performance
     simulator.plot_performance(out_logs, show=True, save=True)
+
+
+
+
