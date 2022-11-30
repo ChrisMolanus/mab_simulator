@@ -507,7 +507,6 @@ if __name__ == "__main__":
             dump_to_csv = True
             break
 
-
     policies = [randomCrayfish.RandomCrayfish, segmentJunglefowl.SegmentJunglefowl, bayesianGroundhog.BayesianGroundhog,
                 epsilonRingtail.EpsilonRingtail]
     policies = [segmentJunglefowl.SegmentJunglefowl]
@@ -516,7 +515,7 @@ if __name__ == "__main__":
     sequential_runs_per_thread = 1
 
     simulator = TelcoSimulator()
-    #generated_historical_action_propensities, _, _ = simulator.get_marketing_history(export=False)
+    # generated_historical_action_propensities, _, _ = simulator.get_marketing_history(export=False)
     generated_historical_action_propensities = list()
     start_time_stamp = datetime.today()
 
