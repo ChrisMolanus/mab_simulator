@@ -164,8 +164,8 @@ def generate_names(nr_of_customers) -> List[Dict[str, str]]:
 # Realistic conventions rates for these channels
 # Exponential decrease in probability of conversion over 21 days(cool off)
 conversion_per_channel: Dict[Channel, np.ndarray] = {
-    Channel.OUTBOUND_EMAIL: np.power(0.8, np.arange(0, 21)) * 0.0003,
-    Channel.OUTBOUND_CALL: np.power(0.8, np.arange(0, 21)) * 0.013}
+    Channel.OUTBOUND_EMAIL: np.power(0.8, np.arange(0, 21)) * 0.005,
+    Channel.OUTBOUND_CALL: np.power(0.8, np.arange(0, 21)) * 0.035}
 
 
 def what_would_a_customer_do(customer: Customer, action: Action, ts: datetime,
