@@ -442,7 +442,7 @@ class TelcoSimulator:
     def do_simulations(self, policies_to_simulate: List[Type[Union[Any]]], keywords: Dict[str, Any], runs_per_policies: int,
                        sequential_runs: int,
                        customers: List[Customer], actions: List[Action], day_count: int, start_ts: datetime,
-                       historical_action_propensities=None
+                       historical_action_propensities=None, dump_sim_to_csv: bool= False
                        ) -> Tuple[Dict[str, Dict[datetime, List[float]]], Dict[str, Dict[datetime, Dict[str, int]]]]:
         """
         Run a set of simulations of the policies in "policies"
@@ -455,6 +455,7 @@ class TelcoSimulator:
         :param day_count: The number of days to simulate
         :param start_ts: The starting date of the simulation
         :param historical_action_propensities: A list of historical transaction the be used to initialize the policies
+        :param dump_sim_to_csv: Dump the logs of the first sim of every policy to a CSV file
         :return: all_logs, chosen_action_logs
         """
         if historical_action_propensities is None:
@@ -465,7 +466,7 @@ class TelcoSimulator:
             for r in range(runs_per_policies):
                 p = Process(target=self._policy_sim,
                             args=(policy_class, customers, actions, day_count, output_queue, r, sequential_runs,
-                                  historical_action_propensities, start_ts, dump_to_csv),
+                                  historical_action_propensities, start_ts, dump_sim_to_csv),
                             kwargs=keywords)
                 processes.append(p)
 
@@ -539,7 +540,7 @@ if __name__ == "__main__":
                                                                    nr_of_threads_per_policies,
                                                                    sequential_runs_per_thread, generated_customers,
                                                                    all_actions, day_to_simulate, start_time_stamp,
-                                                                   generated_historical_action_propensities)
+                                                                   generated_historical_action_propensities, dump_to_csv)
 
     simulator.export_log_data(out_logs)
 
