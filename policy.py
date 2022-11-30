@@ -2,7 +2,9 @@ import random
 from datetime import datetime
 from datetime import date
 from enum import Enum
-from typing import List, Dict, Set, Optional
+from typing import List, Dict, Set, Optional, Tuple
+
+import pandas as pd
 
 
 class ProductType(Enum):
@@ -405,3 +407,55 @@ class Policy:
             return ServedActionPropensity(customer=customer, chosen_action=nba, action_propensities=propensities)
         else:
             return None
+
+
+def customers_to_dataframe(generated_customers: List[Customer]) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    customer_list: List[dict] = list()
+    portfolio_list: List[dict] = list()
+    for customer in generated_customers:
+        customer_list.append(
+            {
+                "customer_id": customer.id,
+                "name": customer.name,
+                "dob": customer.dob,
+                "billing_address": customer.billing_address
+            }
+        )
+        for product in customer.portfolio:
+            portfolio_list.append(
+                {
+                    "customer_id": customer.id,
+                    "product_id": product.id,
+                    "contract_start": product.contract_start,
+                    "contract_end": product.contract_end
+                }
+        )
+    customer_df = pd.DataFrame(customer_list)
+    portfolios_df = pd.DataFrame(portfolio_list)
+    return customer_df, portfolios_df
+
+
+def actions_to_dataframe(actions: List[Action]) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    action_list: List[dict] = list()
+    offers_products: List[dict] = list()
+    for action in actions:
+        action_list.append(
+            {
+                "name": action.name,
+                "channel": action.channel,
+                "start_date": action.start_date,
+                "end_date": action.end_date,
+                "offer": action.offer.name,
+                "template": action.content.template.name,
+                "message": action.content.render()
+            }
+        )
+        for product in action.offer.products:
+            offers_products.append(
+                {
+                    "offer": action.offer.name,
+                    "product": product.id
+                }
+            )
+
+    return pd.DataFrame(action_list), pd.DataFrame(offers_products)
