@@ -89,14 +89,19 @@ def get_actions() -> List[Action]:
     for channel in templates:
         for product in products:
             for template in templates[channel]:
+                # Offer can have more than one product, but for now we only have one
                 offer = Offer(name=f"Offer {product.name}", products=[product])
+                offer_product_list = list()
+                for product_2 in offer.products:
+                    offer_product_list.append(product_2.name)
+                products_str = ','.join(offer_product_list)
                 if channel == Channel.OUTBOUND_EMAIL:
-                    content = Content(name=f"Content for Offer {product.name} in channel {channel}", channel=channel,
-                                      template=template, product=product.name, subjectline="New offer")
+                    content = Content(name=f"Content for Offer {products_str} in channel {channel}", channel=channel,
+                                      template=template, product=products_str, subjectline="New offer")
                 else:
-                    content = Content(name=f"Content for Offer {product.name} in channel {channel}", channel=channel,
-                                      template=template, product=product.name)
-                actions.append(Action(name=f"Sell {product.name} in {channel} using template :{template}",
+                    content = Content(name=f"Content for Offer {products_str} in channel {channel}", channel=channel,
+                                      template=template, product=products_str)
+                actions.append(Action(name=f"Sell {products_str} in {channel} using template :{template}",
                                       channel=channel,
                                       offer=offer,
                                       content=content,
