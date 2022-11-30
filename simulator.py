@@ -486,6 +486,13 @@ class TelcoSimulator:
 
 
 if __name__ == "__main__":
+    dump_to_csv = False
+    for i, arg in enumerate(sys.argv):
+        if arg == "dump":
+            dump_to_csv = True
+            break
+
+
     policies = [randomCrayfish.RandomCrayfish, segmentJunglefowl.SegmentJunglefowl, bayesianGroundhog.BayesianGroundhog,
                 epsilonRingtail.EpsilonRingtail]
 
